@@ -7,8 +7,6 @@ import { Dashboard } from './components/Dashboard';
 import { useInvoiceStore } from './stores/invoiceStore';
 import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X } from 'lucide-react';
-import EcommerceNavigation from './components/Navigation/EcommerceNavigation';
-import ClientNavigation from './components/Navigation/ClientNavigation';
 
 type Tab = 'dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce';
 
@@ -30,7 +28,7 @@ export const App: React.FC = () => {
       setActiveTab('dashboard');
     } else if (currentPath === '/invoices') {
       setActiveTab('invoices');
-    } else if (currentPath === '/clients' || currentPath.startsWith('/client-')) {
+    } else if (currentPath === '/clients') {
       setActiveTab('clients');
     } else if (currentPath === '/ecommerce' || currentPath.startsWith('/ecommerce/')) {
       setActiveTab('ecommerce');
@@ -45,7 +43,7 @@ export const App: React.FC = () => {
         setActiveTab('dashboard');
       } else if (path === '/invoices') {
         setActiveTab('invoices');
-      } else if (path === '/clients' || path.startsWith('/client-')) {
+      } else if (path === '/clients') {
         setActiveTab('clients');
       } else if (path === '/ecommerce' || path.startsWith('/ecommerce/')) {
         setActiveTab('ecommerce');
@@ -3546,12 +3544,6 @@ export const App: React.FC = () => {
               <div className="hidden sm:flex items-center space-x-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
-                  if (tab.id === 'ecommerce') {
-                    return <EcommerceNavigation key={tab.id} />;
-                  }
-                  if (tab.id === 'clients') {
-                    return <ClientNavigation key={tab.id} />;
-                  }
                   return (
                     <button
                       key={tab.id}
@@ -3608,20 +3600,6 @@ export const App: React.FC = () => {
               <div className="py-2 space-y-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
-                  if (tab.id === 'ecommerce') {
-                    return (
-                      <div key={tab.id} className="px-3 py-2">
-                        <EcommerceNavigation />
-                      </div>
-                    );
-                  }
-                  if (tab.id === 'clients') {
-                    return (
-                      <div key={tab.id} className="px-3 py-2">
-                        <ClientNavigation />
-                      </div>
-                    );
-                  }
                   return (
                     <button
                       key={tab.id}
