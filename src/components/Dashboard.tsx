@@ -7,6 +7,8 @@ import {
   AlertCircle,
   CheckCircle,
   Eye,
+  CreditCard,
+  HelpCircle,
   Download,
   Filter,
   RefreshCw,
@@ -42,6 +44,9 @@ export const Dashboard: React.FC = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showDrillDown, setShowDrillDown] = useState(false);
   const [drillDownData, setDrillDownData] = useState<any>(null);
+  const [activityPage, setActivityPage] = useState(1);
+  const [dueDatesPage, setDueDatesPage] = useState(1);
+  const itemsPerPage = 5;
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   // Auto-refresh effect
@@ -243,11 +248,10 @@ export const Dashboard: React.FC = () => {
     }));
   }, [stats.statusBreakdown]);
 
-  // Recent activity
+  // Recent activity with pagination
   const recentActivity = useMemo(() => {
-    return filteredInvoices
+    const allActivity = filteredInvoices
       .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
-      .slice(0, 5)
       .map(invoice => {
         const client = clients.find(c => c.id === invoice.clientId);
         return {
@@ -260,21 +264,23 @@ export const Dashboard: React.FC = () => {
           dueDate: invoice.dueDate
         };
       });
-  }, [filteredInvoices, clients]);
+    
+    const startIndex = (activityPage - 1) * itemsPerPage;
+    return allActivity.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredInvoices, clients, activityPage]);
 
-  // Upcoming due dates
+  // Upcoming due dates with pagination
   const upcomingDueDates = useMemo(() => {
     const now = new Date();
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     
-    return filteredInvoices
+    const allDueDates = filteredInvoices
       .filter(inv => 
         (inv.status === 'sent' || inv.status === 'draft') &&
         new Date(inv.dueDate) >= now &&
         new Date(inv.dueDate) <= thirtyDaysFromNow
       )
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-      .slice(0, 5)
       .map(invoice => {
         const client = clients.find(c => c.id === invoice.clientId);
         const daysUntilDue = Math.ceil(
@@ -291,7 +297,25 @@ export const Dashboard: React.FC = () => {
           isOverdue: daysUntilDue < 0
         };
       });
-  }, [filteredInvoices, clients]);
+    
+    const startIndex = (dueDatesPage - 1) * itemsPerPage;
+    return allDueDates.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredInvoices, clients, dueDatesPage]);
+
+  // Calculate total pages for pagination
+  const totalActivityPages = Math.ceil(
+    filteredInvoices.length / itemsPerPage
+  );
+  
+  const totalDueDatesPages = Math.ceil(
+    filteredInvoices.filter(inv => {
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      return (inv.status === 'sent' || inv.status === 'draft') &&
+        new Date(inv.dueDate) >= now &&
+        new Date(inv.dueDate) <= thirtyDaysFromNow;
+    }).length / itemsPerPage
+  );
 
   // Interactive chart click handlers
   const handleChartClick = useCallback((chartType: string) => {
@@ -428,9 +452,25 @@ export const Dashboard: React.FC = () => {
         return <Clock className="w-4 h-4 text-blue-500" />;
       case 'overdue':
         return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case 'draft':
+        return <FileText className="w-4 h-4 text-gray-500" />;
+      case 'viewed':
+        return <Eye className="w-4 h-4 text-purple-500" />;
+      case 'partial':
+        return <CreditCard className="w-4 h-4 text-orange-500" />;
       default:
-        return <Eye className="w-4 h-4 text-gray-500" />;
+        return <HelpCircle className="w-4 h-4 text-gray-400" />;
     }
+  };
+
+  const handleActivityClick = (invoiceId: string) => {
+    // Navigate to invoice details
+    window.location.href = `/invoices?id=${invoiceId}`;
+  };
+
+  const handleDueDateClick = (invoiceId: string) => {
+    // Navigate to invoice details
+    window.location.href = `/invoices?id=${invoiceId}`;
   };
 
   const formatCurrency = (amount: number) => {
@@ -806,7 +846,11 @@ export const Dashboard: React.FC = () => {
               <p className="text-gray-500 text-center py-4 text-sm">No recent activity</p>
             ) : (
               recentActivity.map(activity => (
-                <div key={activity.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                <div 
+                  key={activity.id} 
+                  onClick={() => handleActivityClick(activity.id)}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg gap-2 cursor-pointer hover:bg-gray-100 transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     {getStatusIcon(activity.status)}
                     <div className="min-w-0 flex-1">
@@ -822,6 +866,29 @@ export const Dashboard: React.FC = () => {
               ))
             )}
           </div>
+          
+          {/* Pagination for Recent Activity */}
+          {totalActivityPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setActivityPage(prev => Math.max(1, prev - 1))}
+                disabled={activityPage === 1}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {activityPage} of {totalActivityPages}
+              </span>
+              <button
+                onClick={() => setActivityPage(prev => Math.min(totalActivityPages, prev + 1))}
+                disabled={activityPage === totalActivityPages}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Upcoming Due Dates */}
@@ -832,9 +899,13 @@ export const Dashboard: React.FC = () => {
               <p className="text-gray-500 text-center py-4 text-sm">No upcoming due dates</p>
             ) : (
               upcomingDueDates.map(due => (
-                <div key={due.id} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg gap-2 ${
-                  due.isOverdue ? 'bg-red-50' : 'bg-yellow-50'
-                }`}>
+                <div 
+                  key={due.id} 
+                  onClick={() => handleDueDateClick(due.id)}
+                  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg gap-2 cursor-pointer transition-colors ${
+                    due.isOverdue ? 'bg-red-50 hover:bg-red-100' : 'bg-yellow-50 hover:bg-yellow-100'
+                  }`}
+                >
                   <div className="flex items-center gap-3">
                     <Calendar className={`w-4 h-4 ${due.isOverdue ? 'text-red-500' : 'text-yellow-500'} flex-shrink-0`} />
                     <div className="min-w-0 flex-1">
@@ -852,6 +923,29 @@ export const Dashboard: React.FC = () => {
               ))
             )}
           </div>
+          
+          {/* Pagination for Upcoming Due Dates */}
+          {totalDueDatesPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setDueDatesPage(prev => Math.max(1, prev - 1))}
+                disabled={dueDatesPage === 1}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {dueDatesPage} of {totalDueDatesPages}
+              </span>
+              <button
+                onClick={() => setDueDatesPage(prev => Math.min(totalDueDatesPages, prev + 1))}
+                disabled={dueDatesPage === totalDueDatesPages}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

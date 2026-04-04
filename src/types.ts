@@ -138,7 +138,7 @@ export interface Invoice {
   clientId: string;
   issueDate: Date;
   dueDate: Date;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'viewed' | 'partial';
   items: InvoiceItem[];
   subtotal: number;
   taxRate: number;
