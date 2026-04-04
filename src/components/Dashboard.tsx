@@ -38,6 +38,7 @@ export const Dashboard: React.FC = () => {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showDrillDown, setShowDrillDown] = useState(false);
   const [drillDownData, setDrillDownData] = useState<any>(null);
@@ -50,10 +51,17 @@ export const Dashboard: React.FC = () => {
     const interval = setInterval(() => {
       // Actually refresh the data by calling the store's loadData function
       loadData();
+      setLastUpdated(new Date()); // Update the last updated timestamp
     }, 30000); // Refresh every 30 seconds
     
     return () => clearInterval(interval);
   }, [autoRefresh, loadData]);
+
+  // Initial data load and update last updated
+  React.useEffect(() => {
+    loadData();
+    setLastUpdated(new Date());
+  }, [loadData]);
 
   // Export functions
   const exportAsImage = async () => {
@@ -447,7 +455,7 @@ export const Dashboard: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500">
-            <span>Last updated: {formatDate(new Date())}</span>
+            <span>Last updated: {formatDate(lastUpdated)}</span>
             {autoRefresh && (
               <>
                 <span className="hidden sm:inline">•</span>
@@ -497,6 +505,18 @@ export const Dashboard: React.FC = () => {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <button
+              onClick={() => {
+                loadData();
+                setLastUpdated(new Date());
+              }}
+              className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">🔄</span>
+            </button>
+            
+            <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={`px-3 py-2 text-sm rounded-lg border transition-colors flex items-center justify-center gap-2 ${
                 autoRefresh 
@@ -505,7 +525,7 @@ export const Dashboard: React.FC = () => {
               }`}
             >
               <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''} flex-shrink-0`} />
-              <span className="hidden sm:inline">{autoRefresh ? 'On' : 'Off'}</span>
+              <span className="hidden sm:inline">{autoRefresh ? 'Auto' : 'Manual'}</span>
               <span className="sm:hidden">{autoRefresh ? '🔄' : '⏸'}</span>
             </button>
             
@@ -631,6 +651,9 @@ export const Dashboard: React.FC = () => {
               <p className="text-xs sm:text-sm font-medium text-gray-700 truncate">Auto-Refresh</p>
               <p className="text-lg sm:text-xl font-bold text-gray-900 truncate">
                 {autoRefresh ? 'Active' : 'Off'}
+              </p>
+              <p className="text-xs text-gray-500 truncate mt-1">
+                Last: {formatDate(lastUpdated)}
               </p>
             </div>
             <button
