@@ -190,22 +190,72 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
   doc.text('Thank you for your business!', 105, footerY, { align: 'center' });
   doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, footerY + 5, { align: 'center' });
   
-  // Save the PDF with mobile-compatible download
+  // Save PDF with mobile-compatible download
   const pdfBlob = doc.output('blob');
   const pdfUrl = URL.createObjectURL(pdfBlob);
   
-  // Create download link
-  const downloadLink = document.createElement('a');
-  downloadLink.href = pdfUrl;
-  downloadLink.download = `invoice-${invoice.invoiceNumber}.pdf`;
+  // Try multiple download methods for mobile compatibility
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
-  // Trigger download
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
+  if (isMobile) {
+    // Mobile-specific download approach
+    try {
+      // Method 1: Direct download with mobile-friendly approach
+      const downloadLink = document.createElement('a');
+      downloadLink.href = pdfUrl;
+      downloadLink.download = `invoice-${invoice.invoiceNumber}.pdf`;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      
+      // Force click with mobile compatibility
+      const event = new MouseEvent('click', {
+        view: window,
+        bubbles: true,
+        cancelable: true
+      });
+      downloadLink.dispatchEvent(event);
+      
+      setTimeout(() => {
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(pdfUrl);
+      }, 1000);
+      
+      return;
+    } catch (error) {
+      console.warn('Mobile download method 1 failed:', error);
+    }
+    
+    try {
+      // Method 2: Open in new tab with download prompt
+      window.open(pdfUrl, '_blank');
+      
+      // Show user instruction
+      setTimeout(() => {
+        alert('PDF opened in new tab. Use browser menu to save/download the PDF.');
+        URL.revokeObjectURL(pdfUrl);
+      }, 500);
+      
+      return;
+    } catch (error) {
+      console.warn('Mobile download method 2 failed:', error);
+    }
+  }
   
-  // Clean up
-  setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+  // Desktop fallback (original method)
+  try {
+    const downloadLink = document.createElement('a');
+    downloadLink.href = pdfUrl;
+    downloadLink.download = `invoice-${invoice.invoiceNumber}.pdf`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+  } catch (error) {
+    console.error('Desktop download failed:', error);
+    // Final fallback - open in new tab
+    window.open(pdfUrl, '_blank');
+    setTimeout(() => URL.revokeObjectURL(pdfUrl), 5000);
+  }
 };
 
 export const generateInvoicePDF = (
@@ -241,19 +291,31 @@ export const downloadInvoicePDF = (
   }
 ) => {
   try {
-    generatePDF(invoice, client, company);
+    const doc = new jsPDF();
     
-    // Additional mobile compatibility check
-    // Try to open in new tab if download doesn't work
-    if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android')) {
-      const pdfBlob = new jsPDF().output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
+    // Generate PDF content (copy from generatePDF function)
+    generatePDFContent(doc, invoice, client, company);
+    
+    // Create blob
+    const pdfBlob = doc.output('blob');
+    
+    // Check if Web Share API is available (modern mobile browsers)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' })] })) {
+      const file = new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' });
       
-      // Try to open in new tab as fallback
-      window.open(pdfUrl, '_blank');
-      
-      // Clean up after a delay
-      setTimeout(() => URL.revokeObjectURL(pdfUrl), 5000);
+      navigator.share({
+        title: `Invoice ${invoice.invoiceNumber}`,
+        text: `Invoice ${invoice.invoiceNumber} for ${client.name}`,
+        files: [file]
+      }).then(() => {
+        console.log('PDF shared successfully');
+      }).catch((error) => {
+        console.warn('Share failed, falling back to download:', error);
+        fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
+      });
+    } else {
+      // Fallback download method
+      fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
     }
     
     return true;
@@ -262,9 +324,213 @@ export const downloadInvoicePDF = (
     
     // Show user-friendly error message for mobile
     if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android')) {
-      alert('PDF download failed. Please try again or use a desktop browser for better compatibility.');
+      alert('PDF generation failed. Please try again or use a desktop browser.');
     }
     
     return false;
   }
+};
+
+// Helper function for mobile download fallback
+const fallbackMobileDownload = (pdfBlob: Blob, invoiceNumber: string) => {
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  
+  try {
+    // Try direct download first
+    const downloadLink = document.createElement('a');
+    downloadLink.href = pdfUrl;
+    downloadLink.download = `invoice-${invoiceNumber}.pdf`;
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    
+    // Force click with mobile compatibility
+    const event = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    });
+    downloadLink.dispatchEvent(event);
+    
+    setTimeout(() => {
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(pdfUrl);
+    }, 1000);
+    
+  } catch (error) {
+    console.warn('Direct download failed, opening in new tab');
+    
+    // Final fallback: open in new tab with instructions
+    window.open(pdfUrl, '_blank');
+    
+    setTimeout(() => {
+      alert('PDF opened in new tab. Use browser menu to save/download the PDF.');
+      URL.revokeObjectURL(pdfUrl);
+    }, 500);
+  }
+};
+
+// Helper function to generate PDF content (extracted from generatePDF)
+const generatePDFContent = (doc: any, invoice: Invoice, client: Client, company?: any) => {
+  // Set up document
+  doc.setFont('helvetica');
+  
+  // Add company header with logo
+  if (company?.logo) {
+    try {
+      doc.addImage(company.logo, 'PNG', 20, 15, 40, 20);
+      doc.setFontSize(20);
+      doc.text(company.name || 'Your Company', 70, 25);
+    } catch (error) {
+      console.warn('Failed to add logo to PDF:', error);
+      doc.setFontSize(24);
+      doc.text(company?.name || 'Your Company', 105, 20, { align: 'center' });
+    }
+  } else {
+    doc.setFontSize(24);
+    doc.text(company?.name || 'Your Company', 105, 20, { align: 'center' });
+  }
+  
+  doc.setFontSize(16);
+  doc.text('INVOICE', 105, company?.logo ? 45 : 30, { align: 'center' });
+  
+  // Add invoice details
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Invoice Details:', 20, 50);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Number: ${invoice.invoiceNumber}`, 20, 57);
+  doc.text(`Date: ${invoice.issueDate.toLocaleDateString()}`, 20, 64);
+  doc.text(`Due Date: ${invoice.dueDate.toLocaleDateString()}`, 20, 71);
+  doc.text(`Status: ${invoice.status.toUpperCase()}`, 20, 78);
+  
+  // Add company details
+  if (company) {
+    const companyY = company?.logo ? 60 : 50;
+    doc.setFont('helvetica', 'bold');
+    doc.text('From:', 120, companyY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(company.name, 120, companyY + 7);
+    doc.text(company.address, 120, companyY + 14);
+    doc.text(company.phone, 120, companyY + 21);
+    doc.text(company.email, 120, companyY + 28);
+  }
+  
+  // Add client details
+  let yPosition = company?.logo ? 105 : 95;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Bill To:', 20, yPosition);
+  doc.setFont('helvetica', 'normal');
+  
+  yPosition += 7;
+  doc.text(client.name || 'N/A', 20, yPosition);
+  yPosition += 5;
+  
+  if (client.email && client.email.trim()) {
+    doc.text(client.email, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.phone && client.phone.trim()) {
+    doc.text(client.phone, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.address && client.address.trim()) {
+    doc.text(client.address, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  // Add items table
+  yPosition += 15;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Items & Services', 20, yPosition);
+  yPosition += 8;
+  
+  // Table headers
+  doc.setFontSize(9);
+  doc.text('Description', 20, yPosition);
+  doc.text('Quantity', 100, yPosition);
+  doc.text('Rate', 130, yPosition);
+  doc.text('Total', 170, yPosition);
+  yPosition += 5;
+  
+  // Draw line
+  doc.line(20, yPosition, 190, yPosition);
+  yPosition += 7;
+  
+  // Add items
+  doc.setFontSize(8);
+  invoice.items.forEach(item => {
+    const description = item.description.length > 40 ? 
+      item.description.substring(0, 40) + '...' : 
+      item.description;
+    
+    doc.text(description, 20, yPosition);
+    doc.text(item.quantity.toString(), 100, yPosition);
+    doc.text(`$${item.rate.toFixed(2)}`, 130, yPosition);
+    doc.text(`$${item.total.toFixed(2)}`, 170, yPosition);
+    yPosition += 6;
+  });
+  
+  // Add totals
+  yPosition += 10;
+  doc.line(20, yPosition, 190, yPosition);
+  yPosition += 8;
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Summary', 140, yPosition);
+  yPosition += 7;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Subtotal: $${invoice.subtotal.toFixed(2)}`, 140, yPosition);
+  yPosition += 6;
+  
+  if (invoice.taxRate > 0) {
+    const taxAmount = invoice.subtotal * (invoice.taxRate / 100);
+    doc.text(`Tax (${invoice.taxRate}%): $${taxAmount.toFixed(2)}`, 140, yPosition);
+    yPosition += 6;
+  }
+  
+  // Draw total line
+  doc.line(130, yPosition + 2, 190, yPosition + 2);
+  yPosition += 6;
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total: $${invoice.total.toFixed(2)}`, 140, yPosition);
+  
+  // Add notes and payment terms
+  if (invoice.notes || invoice.paymentTerms) {
+    yPosition += 20;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    
+    if (invoice.notes) {
+      doc.text('Notes:', 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      const splitNotes = doc.splitTextToSize(invoice.notes, 170);
+      splitNotes.forEach((line: string, index: number) => {
+        doc.text(line, 20, yPosition + 5 + (index * 5));
+      });
+      yPosition += splitNotes.length * 5 + 10;
+    }
+    
+    if (invoice.paymentTerms) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Payment Terms:', 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      const splitTerms = doc.splitTextToSize(invoice.paymentTerms, 170);
+      splitTerms.forEach((line: string, index: number) => {
+        doc.text(line, 20, yPosition + 5 + (index * 5));
+      });
+    }
+  }
+  
+  // Add footer
+  const footerY = 280;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Thank you for your business!', 105, footerY, { align: 'center' });
+  doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, footerY + 5, { align: 'center' });
 };
