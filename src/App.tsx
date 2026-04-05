@@ -4,11 +4,12 @@ import { InvoiceList } from './components/InvoiceList';
 import { ClientManager } from './components/ClientManager';
 import { DataManager } from './components/DataManager';
 import { Dashboard } from './components/Dashboard';
+import { AdvancedSearch } from './components/AdvancedSearch';
 import { useInvoiceStore } from './stores/invoiceStore';
 import type { Client } from './types';
-import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X } from 'lucide-react';
+import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
 
-type Tab = 'dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce';
+type Tab = 'dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce' | 'search';
 
 export const App: React.FC = () => {
   const { currentInvoice, setCurrentInvoice, loadData, clients } = useInvoiceStore();
@@ -32,6 +33,8 @@ export const App: React.FC = () => {
       setActiveTab('clients');
     } else if (currentPath === '/ecommerce' || currentPath.startsWith('/ecommerce/')) {
       setActiveTab('ecommerce');
+    } else if (currentPath === '/search') {
+      setActiveTab('search');
     } else if (currentPath === '/data') {
       setActiveTab('data');
     }
@@ -47,6 +50,8 @@ export const App: React.FC = () => {
         setActiveTab('clients');
       } else if (path === '/ecommerce' || path.startsWith('/ecommerce/')) {
         setActiveTab('ecommerce');
+      } else if (path === '/search') {
+        setActiveTab('search');
       } else if (path === '/data') {
         setActiveTab('data');
       }
@@ -63,6 +68,7 @@ export const App: React.FC = () => {
     { id: 'dashboard' as Tab, label: 'Dashboard', icon: Home },
     { id: 'invoices' as Tab, label: 'Invoices', icon: FileText },
     { id: 'clients' as Tab, label: 'Clients', icon: Users },
+    { id: 'search' as Tab, label: 'Search', icon: Search },
     { id: 'ecommerce' as Tab, label: 'E-commerce', icon: ShoppingCart },
     { id: 'data' as Tab, label: 'Data', icon: Database }
   ];
@@ -94,6 +100,9 @@ export const App: React.FC = () => {
     }
     if (currentPath === '/invoices') {
       return <InvoiceList onCreateInvoice={() => setIsCreatingInvoice(true)} />;
+    }
+    if (currentPath === '/search') {
+      return <AdvancedSearch />;
     }
     if (currentPath === '/data') {
       return <DataManager />;
@@ -3526,7 +3535,12 @@ export const App: React.FC = () => {
     }
 
     // Default to dashboard for any other paths
-    return <Dashboard />;
+    switch (activeTab) {
+      case 'search':
+        return <AdvancedSearch />;
+      default:
+        return <Dashboard />;
+    }
   };
 
   return (
