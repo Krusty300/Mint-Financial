@@ -3,8 +3,7 @@ import {
   FileText, 
   Users, 
   TrendingUp, 
-  AlertCircle, 
-  DollarSign, 
+  AlertCircle,
   Clock,
   CheckCircle,
   X,
@@ -375,7 +374,6 @@ export const InteractiveDashboard: React.FC = () => {
               
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
                   <span className="text-sm font-medium text-blue-800">Outstanding</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-900">${metrics.outstandingRevenue.toFixed(2)}</p>
