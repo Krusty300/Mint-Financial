@@ -190,8 +190,22 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
   doc.text('Thank you for your business!', 105, footerY, { align: 'center' });
   doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, footerY + 5, { align: 'center' });
   
-  // Save the PDF
-  doc.save(`invoice-${invoice.invoiceNumber}.pdf`);
+  // Save the PDF with mobile-compatible download
+  const pdfBlob = doc.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  
+  // Create download link
+  const downloadLink = document.createElement('a');
+  downloadLink.href = pdfUrl;
+  downloadLink.download = `invoice-${invoice.invoiceNumber}.pdf`;
+  
+  // Trigger download
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  
+  // Clean up
+  setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
 };
 
 export const generateInvoicePDF = (
@@ -210,6 +224,47 @@ export const generateInvoicePDF = (
     return true;
   } catch (error) {
     console.error('Error generating PDF:', error);
+    return false;
+  }
+};
+
+// Alternative function for better mobile compatibility
+export const downloadInvoicePDF = (
+  invoice: Invoice, 
+  client: Client, 
+  company?: {
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    logo?: string;
+  }
+) => {
+  try {
+    generatePDF(invoice, client, company);
+    
+    // Additional mobile compatibility check
+    // Try to open in new tab if download doesn't work
+    if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android')) {
+      const pdfBlob = new jsPDF().output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      // Try to open in new tab as fallback
+      window.open(pdfUrl, '_blank');
+      
+      // Clean up after a delay
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 5000);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    
+    // Show user-friendly error message for mobile
+    if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android')) {
+      alert('PDF download failed. Please try again or use a desktop browser for better compatibility.');
+    }
+    
     return false;
   }
 };

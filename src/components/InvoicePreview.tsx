@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Printer, Mail, Maximize2, Minimize2, Eye, Share2 } from 'lucide-react';
 import type { Invoice, Client } from '../types';
-import { generateInvoicePDF } from '../utils/pdfGenerator';
+import { downloadInvoicePDF } from '../utils/pdfGenerator';
 
 interface InvoicePreviewProps {
   invoice: Invoice;
@@ -100,8 +100,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     if (onDownload) {
       onDownload();
     } else {
-      // Default PDF generation
-      const success = generateInvoicePDF(invoice, client, company);
+      // Use enhanced mobile-compatible PDF download
+      const success = downloadInvoicePDF(invoice, client, company);
       if (success) {
         console.log(`Invoice ${invoice.invoiceNumber} PDF generated successfully`);
       } else {
