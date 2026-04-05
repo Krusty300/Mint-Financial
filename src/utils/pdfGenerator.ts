@@ -69,6 +69,11 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
   doc.text(client.name || 'N/A', 20, yPosition);
   yPosition += 5;
   
+  if (client.company && client.company.trim()) {
+    doc.text(client.company, 20, yPosition);
+    yPosition += 5;
+  }
+  
   if (client.email && client.email.trim()) {
     doc.text(client.email, 20, yPosition);
     yPosition += 5;
@@ -85,14 +90,58 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
   }
   
   // Add additional client fields if they exist
+  if (client.website && client.website.trim()) {
+    doc.text(`Website: ${client.website}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.industry && client.industry.trim()) {
+    doc.text(`Industry: ${client.industry}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.companySize && client.companySize.trim()) {
+    doc.text(`Company Size: ${client.companySize}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
   if (client.taxId && client.taxId.trim()) {
     doc.text(`Tax ID: ${client.taxId}`, 20, yPosition);
     yPosition += 5;
   }
   
-  if (client.website && client.website.trim()) {
-    doc.text(`Website: ${client.website}`, 20, yPosition);
+  if (client.status && client.status.trim()) {
+    doc.text(`Status: ${client.status.charAt(0).toUpperCase() + client.status.slice(1)}`, 20, yPosition);
     yPosition += 5;
+  }
+  
+  if (client.tags && client.tags.length > 0) {
+    doc.text(`Tags: ${client.tags.join(', ')}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.notes && client.notes.trim()) {
+    // Wrap notes text if too long
+    const notes = client.notes;
+    const maxLineLength = 60;
+    if (notes.length > maxLineLength) {
+      const words = notes.split(' ');
+      let currentLine = '';
+      for (const word of words) {
+        if ((currentLine + word).length > maxLineLength) {
+          doc.text(`Notes: ${currentLine}`, 20, yPosition);
+          yPosition += 5;
+          currentLine = word + ' ';
+        } else {
+          currentLine += word + ' ';
+        }
+      }
+      if (currentLine.trim()) {
+        doc.text(`Notes: ${currentLine.trim()}`, 20, yPosition);
+      }
+    } else {
+      doc.text(`Notes: ${notes}`, 20, yPosition);
+    }
   }
   
   // Add items table
@@ -425,6 +474,11 @@ const generatePDFContent = (doc: any, invoice: Invoice, client: Client, company?
   doc.text(client.name || 'N/A', 20, yPosition);
   yPosition += 5;
   
+  if (client.company && client.company.trim()) {
+    doc.text(client.company, 20, yPosition);
+    yPosition += 5;
+  }
+  
   if (client.email && client.email.trim()) {
     doc.text(client.email, 20, yPosition);
     yPosition += 5;
@@ -440,7 +494,60 @@ const generatePDFContent = (doc: any, invoice: Invoice, client: Client, company?
     yPosition += 5;
   }
   
-  // Add items table
+  // Add additional client fields if they exist
+  if (client.website && client.website.trim()) {
+    doc.text(`Website: ${client.website}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.industry && client.industry.trim()) {
+    doc.text(`Industry: ${client.industry}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.companySize && client.companySize.trim()) {
+    doc.text(`Company Size: ${client.companySize}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.taxId && client.taxId.trim()) {
+    doc.text(`Tax ID: ${client.taxId}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.status && client.status.trim()) {
+    doc.text(`Status: ${client.status.charAt(0).toUpperCase() + client.status.slice(1)}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.tags && client.tags.length > 0) {
+    doc.text(`Tags: ${client.tags.join(', ')}`, 20, yPosition);
+    yPosition += 5;
+  }
+  
+  if (client.notes && client.notes.trim()) {
+    // Wrap notes text if too long
+    const notes = client.notes;
+    const maxLineLength = 60;
+    if (notes.length > maxLineLength) {
+      const words = notes.split(' ');
+      let currentLine = '';
+      for (const word of words) {
+        if ((currentLine + word).length > maxLineLength) {
+          doc.text(`Notes: ${currentLine}`, 20, yPosition);
+          yPosition += 5;
+          currentLine = word + ' ';
+        } else {
+          currentLine += word + ' ';
+        }
+      }
+      if (currentLine.trim()) {
+        doc.text(`Notes: ${currentLine.trim()}`, 20, yPosition);
+      }
+    } else {
+      doc.text(`Notes: ${notes}`, 20, yPosition);
+    }
+  }
   yPosition += 15;
   doc.setFont('helvetica', 'bold');
   doc.text('Items & Services', 20, yPosition);
