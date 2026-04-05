@@ -331,69 +331,69 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
       </div>
 
       {selectedClient && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-semibold text-gray-900 mb-3">Client Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <p className="text-sm font-medium text-gray-700">Name</p>
-              <p className="text-sm text-gray-900">{selectedClient.name}</p>
+        <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
+          <h3 className="font-semibold text-gray-900 mb-3 text-base sm:text-lg">Client Details</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Name</p>
+              <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.name}</p>
             </div>
             {selectedClient.company && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Company</p>
-                <p className="text-sm text-gray-900">{selectedClient.company}</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Company</p>
+                <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.company}</p>
               </div>
             )}
-            <div>
-              <p className="text-sm font-medium text-gray-700">Email</p>
-              <p className="text-sm text-gray-900">{selectedClient.email}</p>
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-700">Email</p>
+              <p className="text-xs sm:text-sm text-gray-900 break-words lowercase">{selectedClient.email}</p>
             </div>
             {selectedClient.phone && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Phone</p>
-                <p className="text-sm text-gray-900">{selectedClient.phone}</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Phone</p>
+                <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.phone}</p>
               </div>
             )}
             {selectedClient.address && (
-              <div className="md:col-span-2">
-                <p className="text-sm font-medium text-gray-700">Address</p>
-                <p className="text-sm text-gray-900">{selectedClient.address}</p>
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Address</p>
+                <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.address}</p>
               </div>
             )}
             {selectedClient.website && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Website</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Website</p>
                 <a 
                   href={selectedClient.website} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 underline break-words"
                 >
                   {selectedClient.website.replace(/^https?:\/\//, '')}
                 </a>
               </div>
             )}
             {selectedClient.industry && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Industry</p>
-                <p className="text-sm text-gray-900">{selectedClient.industry}</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Industry</p>
+                <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.industry}</p>
               </div>
             )}
             {selectedClient.companySize && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Company Size</p>
-                <p className="text-sm text-gray-900 capitalize">{selectedClient.companySize}</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Company Size</p>
+                <p className="text-xs sm:text-sm text-gray-900 capitalize">{selectedClient.companySize}</p>
               </div>
             )}
             {selectedClient.taxId && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Tax ID</p>
-                <p className="text-sm text-gray-900">{selectedClient.taxId}</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Tax ID</p>
+                <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.taxId}</p>
               </div>
             )}
             {selectedClient.status && (
-              <div>
-                <p className="text-sm font-medium text-gray-700">Status</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Status</p>
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                   selectedClient.status === 'active' ? 'bg-green-100 text-green-800' :
                   selectedClient.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
@@ -405,13 +405,13 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
               </div>
             )}
             {selectedClient.tags && selectedClient.tags.length > 0 && (
-              <div className="md:col-span-2">
-                <p className="text-sm font-medium text-gray-700 mb-2">Tags</p>
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Tags</p>
                 <div className="flex flex-wrap gap-1">
                   {selectedClient.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                      className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-700 rounded text-xs"
                     >
                       {tag}
                     </span>
@@ -420,9 +420,9 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
               </div>
             )}
             {selectedClient.notes && (
-              <div className="md:col-span-2">
-                <p className="text-sm font-medium text-gray-700">Notes</p>
-                <p className="text-sm text-gray-900 mt-1">{selectedClient.notes}</p>
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-700">Notes</p>
+                <p className="text-xs sm:text-sm text-gray-900 mt-1 break-words leading-relaxed">{selectedClient.notes}</p>
               </div>
             )}
           </div>

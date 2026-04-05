@@ -61,75 +61,48 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
   // Add client details
   let yPosition = company?.logo ? 105 : 95;
   doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
   doc.text('Bill To:', 20, yPosition);
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
   
   // Always display client information, even if minimal
   yPosition += 7;
-  doc.text(client.name || 'N/A', 20, yPosition);
-  yPosition += 5;
+  
+  // Helper function to wrap text for mobile-friendly PDF
+  const wrapText = (text: string, maxLength: number = 50) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
+  };
+  
+  doc.text(wrapText(client.name || 'N/A', 45), 20, yPosition);
+  yPosition += 6;
   
   if (client.company && client.company.trim()) {
-    doc.text(client.company, 20, yPosition);
-    yPosition += 5;
+    doc.text(wrapText(client.company, 45), 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.email && client.email.trim()) {
-    doc.text(client.email, 20, yPosition);
-    yPosition += 5;
+    doc.text(wrapText(client.email, 45), 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.phone && client.phone.trim()) {
-    doc.text(client.phone, 20, yPosition);
-    yPosition += 5;
+    doc.text(wrapText(client.phone, 45), 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.address && client.address.trim()) {
-    doc.text(client.address, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  // Add additional client fields if they exist
-  if (client.website && client.website.trim()) {
-    doc.text(`Website: ${client.website}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.industry && client.industry.trim()) {
-    doc.text(`Industry: ${client.industry}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.companySize && client.companySize.trim()) {
-    doc.text(`Company Size: ${client.companySize}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.taxId && client.taxId.trim()) {
-    doc.text(`Tax ID: ${client.taxId}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.status && client.status.trim()) {
-    doc.text(`Status: ${client.status.charAt(0).toUpperCase() + client.status.slice(1)}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.tags && client.tags.length > 0) {
-    doc.text(`Tags: ${client.tags.join(', ')}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.notes && client.notes.trim()) {
-    // Wrap notes text if too long
-    const notes = client.notes;
-    const maxLineLength = 60;
-    if (notes.length > maxLineLength) {
-      const words = notes.split(' ');
+    // Handle longer addresses by breaking into lines
+    const address = client.address;
+    const maxLineLength = 45;
+    if (address.length > maxLineLength) {
+      const words = address.split(' ');
       let currentLine = '';
       for (const word of words) {
         if ((currentLine + word).length > maxLineLength) {
-          doc.text(`Notes: ${currentLine}`, 20, yPosition);
+          doc.text(currentLine, 20, yPosition);
           yPosition += 5;
           currentLine = word + ' ';
         } else {
@@ -137,7 +110,69 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
         }
       }
       if (currentLine.trim()) {
-        doc.text(`Notes: ${currentLine.trim()}`, 20, yPosition);
+        doc.text(currentLine.trim(), 20, yPosition);
+        yPosition += 5;
+      }
+    } else {
+      doc.text(address, 20, yPosition);
+      yPosition += 6;
+    }
+  }
+  
+  // Add additional client fields if they exist
+  if (client.website && client.website.trim()) {
+    doc.text(`Website: ${wrapText(client.website, 35)}`, 20, yPosition);
+    yPosition += 6;
+  }
+  
+  if (client.industry && client.industry.trim()) {
+    doc.text(`Industry: ${wrapText(client.industry, 35)}`, 20, yPosition);
+    yPosition += 6;
+  }
+  
+  if (client.companySize && client.companySize.trim()) {
+    doc.text(`Size: ${client.companySize}`, 20, yPosition);
+    yPosition += 6;
+  }
+  
+  if (client.taxId && client.taxId.trim()) {
+    doc.text(`Tax ID: ${wrapText(client.taxId, 35)}`, 20, yPosition);
+    yPosition += 6;
+  }
+  
+  if (client.status && client.status.trim()) {
+    doc.text(`Status: ${client.status.charAt(0).toUpperCase() + client.status.slice(1)}`, 20, yPosition);
+    yPosition += 6;
+  }
+  
+  if (client.tags && client.tags.length > 0) {
+    const tagsText = client.tags.join(', ');
+    doc.text(`Tags: ${wrapText(tagsText, 40)}`, 20, yPosition);
+    yPosition += 6;
+  }
+  
+  if (client.notes && client.notes.trim()) {
+    // Better notes handling for mobile
+    const notes = client.notes;
+    const maxLineLength = 45;
+    if (notes.length > maxLineLength * 2) {
+      // Show first two lines for very long notes
+      const firstLine = notes.substring(0, maxLineLength);
+      doc.text(`Notes: ${firstLine}...`, 20, yPosition);
+    } else if (notes.length > maxLineLength) {
+      const words = notes.split(' ');
+      let currentLine = 'Notes: ';
+      for (const word of words) {
+        if ((currentLine + word).length > maxLineLength + 7) { // 7 for "Notes: " prefix
+          doc.text(currentLine, 20, yPosition);
+          yPosition += 5;
+          currentLine = word + ' ';
+        } else {
+          currentLine += word + ' ';
+        }
+      }
+      if (currentLine.trim()) {
+        doc.text(currentLine.trim(), 20, yPosition);
       }
     } else {
       doc.text(`Notes: ${notes}`, 20, yPosition);
@@ -467,40 +502,72 @@ const generatePDFContent = (doc: any, invoice: Invoice, client: Client, company?
   // Add client details
   let yPosition = company?.logo ? 105 : 95;
   doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
   doc.text('Bill To:', 20, yPosition);
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
   
   yPosition += 7;
-  doc.text(client.name || 'N/A', 20, yPosition);
-  yPosition += 5;
+  
+  // Helper function to wrap text for mobile-friendly PDF
+  const wrapText = (text: string, maxLength: number = 50) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
+  };
+  
+  doc.text(wrapText(client.name || 'N/A', 45), 20, yPosition);
+  yPosition += 6;
   
   if (client.company && client.company.trim()) {
-    doc.text(client.company, 20, yPosition);
-    yPosition += 5;
+    doc.text(wrapText(client.company, 45), 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.email && client.email.trim()) {
-    doc.text(client.email, 20, yPosition);
-    yPosition += 5;
+    doc.text(wrapText(client.email, 45), 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.phone && client.phone.trim()) {
-    doc.text(client.phone, 20, yPosition);
-    yPosition += 5;
+    doc.text(wrapText(client.phone, 45), 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.address && client.address.trim()) {
-    doc.text(client.address, 20, yPosition);
-    yPosition += 5;
+    // Handle longer addresses by breaking into lines
+    const address = client.address;
+    const maxLineLength = 45;
+    if (address.length > maxLineLength) {
+      const words = address.split(' ');
+      let currentLine = '';
+      for (const word of words) {
+        if ((currentLine + word).length > maxLineLength) {
+          doc.text(currentLine, 20, yPosition);
+          yPosition += 5;
+          currentLine = word + ' ';
+        } else {
+          currentLine += word + ' ';
+        }
+      }
+      if (currentLine.trim()) {
+        doc.text(currentLine.trim(), 20, yPosition);
+        yPosition += 5;
+      }
+    } else {
+      doc.text(address, 20, yPosition);
+      yPosition += 6;
+    }
   }
   
   // Add additional client fields if they exist
   if (client.website && client.website.trim()) {
-    doc.text(`Website: ${client.website}`, 20, yPosition);
-    yPosition += 5;
+    doc.text(`Website: ${wrapText(client.website, 35)}`, 20, yPosition);
+    yPosition += 6;
   }
   
   if (client.industry && client.industry.trim()) {
+    doc.text(`Industry: ${wrapText(client.industry, 35)}`, 20, yPosition);
+    yPosition += 6;
     doc.text(`Industry: ${client.industry}`, 20, yPosition);
     yPosition += 5;
   }
