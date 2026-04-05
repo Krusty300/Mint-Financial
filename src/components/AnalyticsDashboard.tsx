@@ -562,14 +562,6 @@ export const AnalyticsDashboard: React.FC = () => {
               </button>
               
               <button
-                onClick={() => window.location.href = '/clients'}
-                className="w-full flex items-center gap-3 p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <Users className="w-4 h-4" />
-                <span className="text-sm font-medium">Add Client</span>
-              </button>
-              
-              <button
                 onClick={() => window.location.href = '/invoices'}
                 className="w-full flex items-center gap-3 p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
