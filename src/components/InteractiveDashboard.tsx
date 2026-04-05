@@ -129,23 +129,30 @@ export const InteractiveDashboard: React.FC = () => {
       return inv.status !== 'paid' && dueDate < new Date();
     });
     const dueSoonInvoices = invoices.filter(inv => {
-      const dueDate = new Date(inv.dueDate);
       const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+      threeDaysFromNow.setDate(threeDaysFromNow.getDate() - 3);
+      const dueDate = new Date(inv.dueDate);
       return inv.status !== 'paid' && dueDate <= threeDaysFromNow && dueDate >= new Date();
     });
-
+    const totalInvoices = invoices.length;
+    const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
+    const totalClients = clients.length;
+    const activeClients = clients.filter(c => c.status === 'active').length;
+    const paymentRate = totalRevenue > 0 ? (paidRevenue / totalRevenue) * 100 : 0;
+    const averageInvoiceValue = totalInvoices > 0 ? (totalRevenue / totalInvoices) : 0;
+    
     return {
       totalRevenue,
       paidRevenue,
       outstandingRevenue,
-      totalInvoices: invoices.length,
-      paidInvoices: invoices.filter(inv => inv.status === 'paid').length,
-      overdueInvoices: overdueInvoices.length,
-      dueSoonInvoices: dueSoonInvoices.length,
-      totalClients: clients.length,
-      activeClients: clients.filter(c => c.status === 'active').length,
-      paymentRate: totalRevenue > 0 ? (paidRevenue / totalRevenue) * 100 : 0
+      totalInvoices,
+      paidInvoices,
+      totalClients,
+      activeClients,
+      paymentRate,
+      averageInvoiceValue,
+      overdueInvoices,
+      dueSoonInvoices
     };
   }, [invoices, clients]);
 
@@ -159,7 +166,7 @@ export const InteractiveDashboard: React.FC = () => {
         id: 'overdue-' + Date.now(),
         type: 'overdue',
         title: 'Overdue Invoices',
-        message: `${metrics.overdueInvoices} invoice(s) are overdue`,
+        message: `${metrics.overdueInvoices} invoice(s) are overdue - Action required!`,
         severity: metrics.overdueInvoices > 5 ? 'critical' : 'high',
         timestamp: new Date(),
         isRead: false,
@@ -173,7 +180,7 @@ export const InteractiveDashboard: React.FC = () => {
         id: 'dueSoon-' + Date.now(),
         type: 'dueSoon',
         title: 'Payments Due Soon',
-        message: `${metrics.dueSoonInvoices} invoice(s) due in next 3 days`,
+        message: `${metrics.dueSoonInvoices} invoice(s) due in next 3 days - Send reminders!`,
         severity: 'medium',
         timestamp: new Date(),
         isRead: false,
@@ -188,7 +195,7 @@ export const InteractiveDashboard: React.FC = () => {
         id: 'highValue-' + Date.now(),
         type: 'highValue',
         title: 'High Value Invoices',
-        message: `${highValueInvoices.length} high-value invoice(s) pending payment`,
+        message: `${highValueInvoices.length} high-value invoice(s) pending - Follow up!`,
         severity: 'medium',
         timestamp: new Date(),
         isRead: false,
@@ -567,11 +574,27 @@ export const InteractiveDashboard: React.FC = () => {
               </button>
               
               <button
+                onClick={() => window.location.href = '/clients'}
+                className="w-full flex items-center gap-3 p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Users className="w-4 h-4" />
+                <span className="text-sm font-medium">Add Client</span>
+              </button>
+              
+              <button
                 onClick={() => window.location.href = '/data'}
                 className="w-full flex items-center gap-3 p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
               >
                 <Eye className="w-4 h-4" />
                 <span className="text-sm font-medium">Export Data</span>
+              </button>
+              
+              <button
+                onClick={() => window.location.href = '/search'}
+                className="w-full flex items-center gap-3 p-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <Search className="w-4 h-4" />
+                <span className="text-sm font-medium">Advanced Search</span>
               </button>
             </div>
           </div>
