@@ -363,7 +363,7 @@ export const InteractiveDashboard: React.FC = () => {
               </button>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-5 h-5 text-green-600" />
@@ -420,7 +420,7 @@ export const InteractiveDashboard: React.FC = () => {
             </div>
             
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-gray-600" />
                   <span className="text-sm font-medium text-gray-900">Total Invoices</span>
@@ -428,7 +428,7 @@ export const InteractiveDashboard: React.FC = () => {
                 <span className="text-lg font-bold text-gray-900">{metrics.totalInvoices}</span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   <span className="text-sm font-medium text-green-800">Paid</span>
@@ -436,7 +436,7 @@ export const InteractiveDashboard: React.FC = () => {
                 <span className="text-lg font-bold text-green-900">{metrics.paidInvoices}</span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-800">Pending</span>
@@ -444,7 +444,7 @@ export const InteractiveDashboard: React.FC = () => {
                 <span className="text-lg font-bold text-blue-900">{metrics.totalInvoices - metrics.paidInvoices}</span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-red-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-red-600" />
                   <span className="text-sm font-medium text-red-800">Overdue</span>
@@ -461,7 +461,7 @@ export const InteractiveDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Client Metrics</h3>
             
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-purple-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-purple-600" />
                   <span className="text-sm font-medium text-purple-800">Total Clients</span>
@@ -469,7 +469,7 @@ export const InteractiveDashboard: React.FC = () => {
                 <span className="text-lg font-bold text-purple-900">{metrics.totalClients}</span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   <span className="text-sm font-medium text-green-800">Active</span>
@@ -477,7 +477,7 @@ export const InteractiveDashboard: React.FC = () => {
                 <span className="text-lg font-bold text-green-900">{metrics.activeClients}</span>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-800">Avg Revenue/Client</span>
@@ -511,7 +511,7 @@ export const InteractiveDashboard: React.FC = () => {
               </div>
             </div>
             
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-64 sm:max-h-96 overflow-y-auto">
               {alerts.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Bell className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -611,7 +611,7 @@ export const InteractiveDashboard: React.FC = () => {
           <div className="p-6 h-full">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
             
-            <div className="space-y-3 max-h-64 overflow-y-auto">
+            <div className="space-y-3 max-h-64 sm:max-h-80 overflow-y-auto">
               {activities.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Activity className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -621,11 +621,11 @@ export const InteractiveDashboard: React.FC = () => {
                 activities.map(activity => {
                   const Icon = activity.icon;
                   return (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div key={activity.id} className="flex flex-col sm:flex-row sm:items-start gap-3 p-3 bg-gray-50 rounded-lg">
                       <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${activity.color}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{activity.title}</p>
-                        <p className="text-xs text-gray-600 truncate">{activity.description}</p>
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-xs text-gray-600">{activity.description}</p>
                         <p className="text-xs text-gray-500 mt-1">
                           {new Date(activity.timestamp).toLocaleString()}
                         </p>
@@ -647,7 +647,7 @@ export const InteractiveDashboard: React.FC = () => {
     switch (size) {
       case 'small': return 'col-span-1 row-span-1';
       case 'medium': return 'col-span-1 row-span-2 sm:col-span-2 sm:row-span-1';
-      case 'large': return 'col-span-1 row-span-2 sm:col-span-2 sm:row-span-2';
+      case 'large': return 'col-span-1 row-span-2 sm:col-span-2 sm:row-span-2 lg:col-span-3';
       default: return 'col-span-1 row-span-1';
     }
   };
@@ -664,31 +664,33 @@ export const InteractiveDashboard: React.FC = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'text-green-600 animate-spin' : 'text-gray-400'}`} />
-              <span>Auto-refresh: {autoRefresh ? 'On' : 'Off'}</span>
+              <span className="truncate">Auto-refresh: {autoRefresh ? 'On' : 'Off'}</span>
             </div>
             
-            <button
-              onClick={() => setShowAlertsPanel(!showAlertsPanel)}
-              className="relative p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Bell className="w-4 h-4 text-gray-600" />
-              {alerts.filter(a => !a.isRead).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">
-                  {alerts.filter(a => !a.isRead).length}
-                </span>
-              )}
-            </button>
-            
-            <button
-              onClick={() => loadData()}
-              className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              title="Manual Refresh"
-            >
-              <RefreshCw className="w-4 h-4 text-gray-600" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAlertsPanel(!showAlertsPanel)}
+                className="relative p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Bell className="w-4 h-4 text-gray-600" />
+                {alerts.filter(a => !a.isRead).length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">
+                    {alerts.filter(a => !a.isRead).length}
+                  </span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => loadData()}
+                className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                title="Manual Refresh"
+              >
+                <RefreshCw className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
         
@@ -699,7 +701,7 @@ export const InteractiveDashboard: React.FC = () => {
 
       {/* Widget Grid */}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 auto-rows-min">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-min">
           {widgets.map(widget => (
             <div
               key={widget.id}
@@ -754,7 +756,7 @@ export const InteractiveDashboard: React.FC = () => {
       {/* Alerts Panel */}
       {showAlertsPanel && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] sm:max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">All Alerts</h3>
               <div className="flex items-center gap-2">
@@ -773,7 +775,7 @@ export const InteractiveDashboard: React.FC = () => {
               </div>
             </div>
             
-            <div className="p-4 overflow-y-auto max-h-[60vh]">
+            <div className="p-4 overflow-y-auto max-h-[60vh] sm:max-h-[70vh]">
               {alerts.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Bell className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -789,14 +791,14 @@ export const InteractiveDashboard: React.FC = () => {
                       }`}
                       onClick={() => markAlertAsRead(alert.id)}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-3 h-3 rounded-full mt-0.5 flex-shrink-0 ${
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
                           alert.severity === 'critical' ? 'bg-red-600' :
                           alert.severity === 'high' ? 'bg-orange-600' :
                           alert.severity === 'medium' ? 'bg-yellow-600' : 'bg-blue-600'
                         }`} />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1">
                             <p className="text-sm font-medium text-gray-900">{alert.title}</p>
                             <span className="text-xs text-gray-500">
                               {new Date(alert.timestamp).toLocaleDateString()}
