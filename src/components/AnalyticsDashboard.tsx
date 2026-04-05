@@ -656,9 +656,9 @@ export const AnalyticsDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Interactive Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              Real-time insights and quick actions
+              Expert analytics and strategic recommendations
             </p>
           </div>
           
