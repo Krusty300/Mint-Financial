@@ -391,19 +391,6 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
                 <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.taxId}</p>
               </div>
             )}
-            {selectedClient.status && (
-              <div className="space-y-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-700">Status</p>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  selectedClient.status === 'active' ? 'bg-green-100 text-green-800' :
-                  selectedClient.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                  selectedClient.status === 'prospect' ? 'bg-blue-100 text-blue-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {selectedClient.status.charAt(0).toUpperCase() + selectedClient.status.slice(1)}
-                </span>
-              </div>
-            )}
             {selectedClient.tags && selectedClient.tags.length > 0 && (
               <div className="sm:col-span-2 space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Tags</p>
@@ -417,12 +404,6 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-            {selectedClient.notes && (
-              <div className="sm:col-span-2 space-y-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-700">Notes</p>
-                <p className="text-xs sm:text-sm text-gray-900 mt-1 break-words leading-relaxed">{selectedClient.notes}</p>
               </div>
             )}
           </div>
