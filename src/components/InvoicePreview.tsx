@@ -111,26 +111,26 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   };
 
   const InvoiceContent = () => (
-    <div className={`${styles.container} ${isFullscreen ? 'min-h-screen' : 'max-w-4xl mx-auto'}`}>
+    <div className={`${styles.container} ${isFullscreen ? 'min-h-screen' : 'max-w-4xl mx-auto'} overflow-x-auto`}>
       {/* Header */}
-      <div className={`${styles.header} p-6 ${template === 'modern' ? 'rounded-t-xl' : ''}`}>
-        <div className="flex justify-between items-start">
+      <div className={`${styles.header} p-4 sm:p-6 ${template === 'modern' ? 'rounded-t-xl' : ''}`}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div className="flex-1">
             {company.logo && (
-              <img src={company.logo} alt={company.name} className="h-12 mb-2" />
+              <img src={company.logo} alt={company.name} className="h-8 sm:h-12 mb-2" />
             )}
-            <h1 className={`text-3xl font-bold ${template === 'modern' ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className={`text-2xl sm:text-3xl font-bold ${template === 'modern' ? 'text-white' : 'text-gray-900'}`}>
               INVOICE
             </h1>
-            <p className={`text-sm ${template === 'modern' ? 'text-blue-100' : 'text-gray-600'}`}>
+            <p className={`text-xs sm:text-sm ${template === 'modern' ? 'text-blue-100' : 'text-gray-600'}`}>
               #{invoice.invoiceNumber}
             </p>
           </div>
-          <div className={`text-right ${template === 'modern' ? 'text-white' : 'text-gray-700'}`}>
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(invoice.status)}`}>
+          <div className={`text-left sm:text-right ${template === 'modern' ? 'text-white' : 'text-gray-700'}`}>
+            <div className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getStatusColor(invoice.status)}`}>
               {invoice.status.toUpperCase()}
             </div>
-            <div className="mt-2 text-sm">
+            <div className="mt-2 text-xs sm:text-sm space-y-1">
               <p>Date: {formatDate(invoice.issueDate)}</p>
               <p>Due: {formatDate(invoice.dueDate)}</p>
             </div>
@@ -139,48 +139,48 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       </div>
 
       {/* Company & Client Information */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
           {/* From */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">From</h3>
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">From</h3>
             <div className="space-y-1">
-              <p className="font-medium text-gray-900">{company.name}</p>
-              <p className="text-sm text-gray-600">{company.address}</p>
-              <p className="text-sm text-gray-600">{company.phone}</p>
-              <p className="text-sm text-gray-600">{company.email}</p>
+              <p className="font-medium text-gray-900 text-sm sm:text-base">{company.name}</p>
+              <p className="text-xs sm:text-sm text-gray-600">{company.address}</p>
+              <p className="text-xs sm:text-sm text-gray-600">{company.phone}</p>
+              <p className="text-xs sm:text-sm text-gray-600">{company.email}</p>
             </div>
           </div>
 
           {/* To */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Bill To</h3>
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Bill To</h3>
             <div className="space-y-1">
-              <p className="font-medium text-gray-900">{client.name}</p>
-              <p className="text-sm text-gray-600">{client.address}</p>
-              {client.phone && <p className="text-sm text-gray-600">{client.phone}</p>}
-              <p className="text-sm text-gray-600">{client.email}</p>
+              <p className="font-medium text-gray-900 text-sm sm:text-base">{client.name}</p>
+              <p className="text-xs sm:text-sm text-gray-600">{client.address}</p>
+              {client.phone && <p className="text-xs sm:text-sm text-gray-600">{client.phone}</p>}
+              <p className="text-xs sm:text-sm text-gray-600">{client.email}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Items Table */}
-      <div className="px-6 pb-6">
-        <div className={styles.table}>
-          <table className="w-full">
+      <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className={`${styles.table} overflow-x-auto`}>
+          <table className="w-full min-w-full">
             <thead className={template === 'modern' ? 'bg-gray-50' : template === 'minimal' ? 'bg-gray-50' : 'bg-gray-100'}>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Description
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide hidden sm:table-cell">
                   Quantity
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide hidden sm:table-cell">
                   Rate
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Total
                 </th>
               </tr>
@@ -188,16 +188,19 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             <tbody className={template === 'modern' ? 'divide-y divide-gray-200' : 'divide-y divide-gray-300'}>
               {invoice.items.map((item, index) => (
                 <tr key={item.id} className={index % 2 === 0 && template === 'classic' ? 'bg-gray-50' : ''}>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900">
                     <div className="font-medium">{item.description}</div>
+                    <div className="text-xs text-gray-500 sm:hidden mt-1">
+                      Qty: {item.quantity} × {formatCurrency(item.rate)}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 text-right hidden sm:table-cell">
                     {item.quantity}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 text-right hidden sm:table-cell">
                     {formatCurrency(item.rate)}
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-900 text-right">
                     {formatCurrency(item.total)}
                   </td>
                 </tr>
@@ -208,18 +211,18 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       </div>
 
       {/* Totals */}
-      <div className="px-6 pb-6">
+      <div className="px-4 sm:px-6 pb-4 sm:pb-6">
         <div className="flex justify-end">
           <div className="w-full max-w-xs space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Subtotal:</span>
               <span className="font-medium">{formatCurrency(invoice.subtotal)}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Tax ({invoice.taxRate}%):</span>
               <span className="font-medium">{formatCurrency(invoice.subtotal * (invoice.taxRate / 100))}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
+            <div className="flex justify-between text-base sm:text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
               <span>Total:</span>
               <span>{formatCurrency(invoice.total)}</span>
             </div>
@@ -228,13 +231,13 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       </div>
 
       {/* Footer */}
-      <div className={`${styles.footer} p-6 ${template === 'modern' ? 'rounded-b-xl' : ''}`}>
+      <div className={`${styles.footer} p-4 sm:p-6 ${template === 'modern' ? 'rounded-b-xl' : ''}`}>
         <div className="text-center space-y-2">
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600">
             {invoice.paymentTerms || 'Payment due within 30 days. Thank you for your business!'}
           </p>
           {invoice.notes && (
-            <p className="text-sm text-gray-500 italic">
+            <p className="text-xs sm:text-sm text-gray-500 italic">
               Notes: {invoice.notes}
             </p>
           )}
@@ -247,62 +250,62 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     <div className="relative">
       {/* Action Bar */}
       {showActions && (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 sm:p-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setZoom(Math.max(50, zoom - 10))}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Zoom Out"
               >
-                <Minimize2 className="w-4 h-4" />
+                <Minimize2 className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
-              <span className="text-sm font-medium text-gray-700 min-w-[60px] text-center">
+              <span className="text-xs sm:text-sm font-medium text-gray-700 min-w-[50px] sm:min-w-[60px] text-center">
                 {zoom}%
               </span>
               <button
                 onClick={() => setZoom(Math.min(200, zoom + 10))}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Zoom In"
               >
-                <Maximize2 className="w-4 h-4" />
+                <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={onPrint}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Print"
               >
-                <Printer className="w-4 h-4" />
+                <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={handleDownloadPDF}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Download PDF"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={onEmail}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Email"
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
               <button
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Share"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
@@ -311,17 +314,17 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
 
       {/* Invoice Preview */}
       <div 
-        className={`overflow-auto ${isFullscreen ? 'fixed inset-0 z-50 bg-gray-900 p-8' : 'border border-gray-200 rounded-lg'}`}
+        className={`overflow-auto ${isFullscreen ? 'fixed inset-0 z-50 bg-gray-900 p-4 sm:p-8' : 'border border-gray-200 rounded-lg'}`}
         style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
       >
         {isFullscreen && (
           <div className="fixed top-4 right-4 z-50">
             <button
               onClick={() => setIsFullscreen(false)}
-              className="p-2 bg-white text-gray-600 hover:text-gray-900 rounded-lg shadow-lg transition-colors"
+              className="p-1.5 sm:p-2 bg-white text-gray-600 hover:text-gray-900 rounded-lg shadow-lg transition-colors"
               title="Exit Fullscreen"
             >
-              <Minimize2 className="w-5 h-5" />
+              <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         )}
