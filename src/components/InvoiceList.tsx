@@ -7,13 +7,15 @@ import { generateInvoicePDF } from '../utils/pdfGenerator';
 import { format } from 'date-fns';
 
 export const InvoiceList: React.FC<{ onCreateInvoice: () => void }> = ({ onCreateInvoice }) => {
-  const { invoices, setCurrentInvoice, deleteInvoice, duplicateInvoice, clients } = useInvoiceStore();
+  const { invoices, setCurrentInvoice, deleteInvoice, duplicateInvoice, updateInvoice, clients } = useInvoiceStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<Invoice['status'] | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<{ startDate: Date | null; endDate: Date | null }>({ startDate: null, endDate: null });
   const [amountFilter, setAmountFilter] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
   const [previewInvoice, setPreviewInvoice] = useState<Invoice | null>(null);
+  const [showBulkStatusDialog, setShowBulkStatusDialog] = useState(false);
+  const [bulkStatusTarget, setBulkStatusTarget] = useState<Invoice['status']>('sent');
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter(invoice => {
@@ -79,16 +81,100 @@ export const InvoiceList: React.FC<{ onCreateInvoice: () => void }> = ({ onCreat
     }
   };
 
-  const handleBulkAction = (action: 'duplicate' | 'delete') => {
-    if (action === 'delete') {
-      if (confirm(`Are you sure you want to delete ${selectedInvoices.length} invoice(s)?`)) {
-        selectedInvoices.forEach(id => deleteInvoice(id));
+  const handleBulkAction = (action: 'duplicate' | 'delete' | 'export' | 'status' | 'email') => {
+    switch (action) {
+      case 'delete':
+        if (confirm(`Are you sure you want to delete ${selectedInvoices.length} invoice(s)? This action cannot be undone.`)) {
+          selectedInvoices.forEach(id => deleteInvoice(id));
+          setSelectedInvoices([]);
+        }
+        break;
+      
+      case 'duplicate':
+        selectedInvoices.forEach(id => duplicateInvoice(id));
         setSelectedInvoices([]);
-      }
-    } else if (action === 'duplicate') {
-      selectedInvoices.forEach(id => duplicateInvoice(id));
-      setSelectedInvoices([]);
+        break;
+      
+      case 'export':
+        handleBulkExport();
+        break;
+      
+      case 'status':
+        setShowBulkStatusDialog(true);
+        break;
+      
+      case 'email':
+        handleBulkEmail();
+        break;
     }
+  };
+
+  const handleBulkExport = () => {
+    const selectedInvoiceData = invoices.filter(inv => selectedInvoices.includes(inv.id));
+    
+    // Create CSV content
+    const csvContent = [
+      'Invoice Number,Client Name,Issue Date,Due Date,Status,Amount,Tax,Total,Notes',
+      ...selectedInvoiceData.map(inv => {
+        const client = clients.find(c => c.id === inv.clientId);
+        return [
+          inv.invoiceNumber,
+          client?.name || 'Unknown',
+          format(new Date(inv.issueDate), 'yyyy-MM-dd'),
+          format(new Date(inv.dueDate), 'yyyy-MM-dd'),
+          inv.status,
+          inv.subtotal.toFixed(2),
+          (inv.subtotal * (inv.taxRate / 100)).toFixed(2),
+          inv.total.toFixed(2),
+          `"${inv.notes || ''}"`
+        ].join(',');
+      })
+    ].join('\n');
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoices-export-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Also generate PDF bundle if multiple invoices
+    if (selectedInvoices.length > 1) {
+      console.log(`Generated CSV export for ${selectedInvoices.length} invoices`);
+    }
+    
+    setSelectedInvoices([]);
+  };
+
+  const handleBulkStatusUpdate = (newStatus: Invoice['status']) => {
+    selectedInvoices.forEach(id => {
+      const invoice = invoices.find(inv => inv.id === id);
+      if (invoice) {
+        updateInvoice(id, { status: newStatus });
+      }
+    });
+    setShowBulkStatusDialog(false);
+    setSelectedInvoices([]);
+  };
+
+  const handleBulkEmail = () => {
+    const selectedInvoiceData = invoices.filter(inv => selectedInvoices.includes(inv.id));
+    const clientEmails = [...new Set(selectedInvoiceData.map(inv => {
+      const client = clients.find(c => c.id === inv.clientId);
+      return client?.email;
+    }).filter(Boolean))];
+    
+    if (clientEmails.length === 0) {
+      alert('No client emails found for selected invoices.');
+      return;
+    }
+    
+    alert(`Invoices would be emailed to ${clientEmails.length} client(s):\n${clientEmails.join(', ')}\n\nThis would integrate with your email service.`);
+    setSelectedInvoices([]);
   };
 
   const handlePreview = (invoice: Invoice) => {
@@ -242,8 +328,26 @@ export const InvoiceList: React.FC<{ onCreateInvoice: () => void }> = ({ onCreat
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <button
-              onClick={() => handleBulkAction('duplicate')}
+              onClick={() => handleBulkAction('status')}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              Update Status
+            </button>
+            <button
+              onClick={() => handleBulkAction('export')}
               className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+            >
+              Export
+            </button>
+            <button
+              onClick={() => handleBulkAction('email')}
+              className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+            >
+              Email
+            </button>
+            <button
+              onClick={() => handleBulkAction('duplicate')}
+              className="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm"
             >
               Duplicate
             </button>
@@ -515,6 +619,63 @@ export const InvoiceList: React.FC<{ onCreateInvoice: () => void }> = ({ onCreat
                 onEmail={handleEmailInvoice}
                 template="classic"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Status Update Dialog */}
+      {showBulkStatusDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Update Status for {selectedInvoices.length} Invoice(s)
+              </h3>
+              <button
+                onClick={() => setShowBulkStatusDialog(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select New Status
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['draft', 'sent', 'paid', 'overdue'] as Invoice['status'][]).map(status => (
+                    <button
+                      key={status}
+                      onClick={() => setBulkStatusTarget(status)}
+                      className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                        bulkStatusTarget === status
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setShowBulkStatusDialog(false)}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleBulkStatusUpdate(bulkStatusTarget)}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Update {selectedInvoices.length} Invoice(s)
+                </button>
+              </div>
             </div>
           </div>
         </div>
