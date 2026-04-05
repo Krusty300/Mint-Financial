@@ -52,7 +52,7 @@ interface Activity {
   color: string;
 }
 
-export const InteractiveDashboard: React.FC = () => {
+export const AnalyticsDashboard: React.FC = () => {
   const { invoices, clients, setCurrentInvoice, loadData } = useInvoiceStore();
   const [widgets, setWidgets] = useState<Widget[]>([
     {
