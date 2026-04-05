@@ -16,10 +16,10 @@ import {
   Activity,
   GripVertical,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Search
 } from 'lucide-react';
 import { useInvoiceStore } from '../stores/invoiceStore';
-import type { Invoice, Client } from '../types';
 
 interface Widget {
   id: string;
@@ -161,13 +161,13 @@ export const InteractiveDashboard: React.FC = () => {
     const newAlerts: Alert[] = [];
 
     // Overdue invoices
-    if (metrics.overdueInvoices > 0) {
+    if (metrics.overdueInvoices.length > 0) {
       newAlerts.push({
         id: 'overdue-' + Date.now(),
         type: 'overdue',
         title: 'Overdue Invoices',
-        message: `${metrics.overdueInvoices} invoice(s) are overdue - Action required!`,
-        severity: metrics.overdueInvoices > 5 ? 'critical' : 'high',
+        message: `${metrics.overdueInvoices.length} invoice(s) are overdue - Action required!`,
+        severity: metrics.overdueInvoices.length > 5 ? 'critical' : 'high',
         timestamp: new Date(),
         isRead: false,
         actionUrl: '/invoices?status=overdue'
@@ -175,12 +175,12 @@ export const InteractiveDashboard: React.FC = () => {
     }
 
     // Due soon invoices
-    if (metrics.dueSoonInvoices > 0) {
+    if (metrics.dueSoonInvoices.length > 0) {
       newAlerts.push({
         id: 'dueSoon-' + Date.now(),
         type: 'dueSoon',
         title: 'Payments Due Soon',
-        message: `${metrics.dueSoonInvoices} invoice(s) due in next 3 days - Send reminders!`,
+        message: `${metrics.dueSoonInvoices.length} invoice(s) due in next 3 days - Send reminders!`,
         severity: 'medium',
         timestamp: new Date(),
         isRead: false,
@@ -203,7 +203,10 @@ export const InteractiveDashboard: React.FC = () => {
       });
     }
 
-    setAlerts(prev => [...newAlerts, ...prev].slice(0, 50));
+    setAlerts(prev => {
+      const updatedAlerts = newAlerts.concat(prev);
+      return Array.from(updatedAlerts).slice(0, 50);
+    });
   }, [metrics]);
 
   // Generate recent activities
@@ -215,7 +218,8 @@ export const InteractiveDashboard: React.FC = () => {
       .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
       .slice(0, 5);
 
-    recentInvoices.forEach(invoice => {
+    for (let i = 0; i < recentInvoices.length; i++) {
+      const invoice = recentInvoices[i];
       recentActivities.push({
         id: 'inv-' + invoice.id,
         type: 'invoice',
@@ -225,7 +229,7 @@ export const InteractiveDashboard: React.FC = () => {
         icon: FileText,
         color: 'text-blue-600'
       });
-    });
+    }
 
     // Recent payments
     const recentPayments = invoices
@@ -233,7 +237,8 @@ export const InteractiveDashboard: React.FC = () => {
       .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
       .slice(0, 3);
 
-    recentPayments.forEach(invoice => {
+    for (let i = 0; i < recentPayments.length; i++) {
+      const invoice = recentPayments[i];
       recentActivities.push({
         id: 'pay-' + invoice.id,
         type: 'payment',
@@ -243,13 +248,14 @@ export const InteractiveDashboard: React.FC = () => {
         icon: CheckCircle,
         color: 'text-green-600'
       });
-    });
+    }
 
     // Recent clients
     const recentClients = clients
       .slice(0, 3);
 
-    recentClients.forEach(client => {
+    for (let i = 0; i < recentClients.length; i++) {
+      const client = recentClients[i];
       recentActivities.push({
         id: 'client-' + client.id,
         type: 'client',
@@ -259,7 +265,7 @@ export const InteractiveDashboard: React.FC = () => {
         icon: Users,
         color: 'text-purple-600'
       });
-    });
+    }
 
     setActivities(recentActivities.slice(0, 10));
   }, [invoices, clients]);
@@ -373,7 +379,7 @@ export const InteractiveDashboard: React.FC = () => {
                   <span className="text-sm font-medium text-blue-800">Outstanding</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-900">${metrics.outstandingRevenue.toFixed(2)}</p>
-                <p className="text-xs text-blue-700 mt-1">{metrics.overdueInvoices} overdue</p>
+                <p className="text-xs text-blue-700 mt-1">{metrics.overdueInvoices.length} overdue</p>
               </div>
               
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -443,7 +449,7 @@ export const InteractiveDashboard: React.FC = () => {
                   <AlertCircle className="w-4 h-4 text-red-600" />
                   <span className="text-sm font-medium text-red-800">Overdue</span>
                 </div>
-                <span className="text-lg font-bold text-red-900">{metrics.overdueInvoices}</span>
+                <span className="text-lg font-bold text-red-900">{metrics.overdueInvoices.length}</span>
               </div>
             </div>
           </div>
