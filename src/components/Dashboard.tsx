@@ -13,9 +13,11 @@ import {
   Filter,
   RefreshCw,
   Image,
-  File
+  File,
+  Plus,
+  Send,
+  TrendingUp
 } from 'lucide-react';
-import { useInvoiceStore } from '../stores/invoiceStore';
 import { 
   BarChart, 
   Bar, 
@@ -28,9 +30,12 @@ import {
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
+  RadialBarChart,
+  RadialBar
 } from 'recharts';
 import type { Invoice } from '../types';
+import { useInvoiceStore } from '../stores/invoiceStore';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -231,6 +236,39 @@ export const Dashboard: React.FC = () => {
       .sort((a, b) => b.value - a.value)
       .slice(0, 5); // Top 5 clients
   }, [filteredInvoices, clients]);
+
+  // Gauge chart data for KPIs
+  const gaugeData = useMemo(() => {
+    const paidRate = stats.totalInvoices > 0 ? (stats.statusBreakdown.paid || 0) / stats.totalInvoices * 100 : 0;
+    const overdueRate = stats.totalInvoices > 0 ? (stats.statusBreakdown.overdue || 0) / stats.totalInvoices * 100 : 0;
+    
+    return [
+      {
+        name: 'Paid Rate',
+        value: Math.round(paidRate),
+        fill: '#10b981'
+      },
+      {
+        name: 'Overdue Rate', 
+        value: Math.round(overdueRate),
+        fill: '#ef4444'
+      }
+    ];
+  }, [stats]);
+
+  // Quick action handlers
+  const handleCreateInvoice = () => {
+    window.location.href = '/invoices?action=new';
+  };
+
+  const handleSendReminder = () => {
+    const overdueInvoices = filteredInvoices.filter(inv => inv.status === 'overdue');
+    if (overdueInvoices.length === 0) {
+      alert('No overdue invoices to send reminders for.');
+      return;
+    }
+    alert(`Would send reminders for ${overdueInvoices.length} overdue invoices.`);
+  };
 
   // Status chart data
   const statusChartData = useMemo(() => {
@@ -751,6 +789,64 @@ export const Dashboard: React.FC = () => {
             </div>
             <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-red-500 flex-shrink-0" />
           </div>
+        </div>
+      </div>
+
+      {/* Gauge Charts for KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+        {gaugeData.map((gauge, index) => (
+          <div key={index} className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+            <h4 className="text-sm font-medium text-gray-600 mb-3 text-center">{gauge.name}</h4>
+            <ResponsiveContainer width="100%" height={120}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={[gauge]}>
+                <RadialBar 
+                  dataKey="value" 
+                  cornerRadius={10} 
+                  fill={gauge.fill}
+                  background={{ fill: '#f3f4f6' }}
+                />
+                <Tooltip />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <p className="text-center text-lg font-bold mt-2" style={{ color: gauge.fill }}>
+              {gauge.value}%
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <button
+            onClick={handleCreateInvoice}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-sm font-medium">Create Invoice</span>
+          </button>
+          <button
+            onClick={handleSendReminder}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            <Send className="w-4 h-4" />
+            <span className="text-sm font-medium">Send Reminders</span>
+          </button>
+          <button
+            onClick={() => alert('Export functionality coming soon!')}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span className="text-sm font-medium">Export Report</span>
+          </button>
+          <button
+            onClick={() => alert('Analytics dashboard coming soon!')}
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-sm font-medium">View Analytics</span>
+          </button>
         </div>
       </div>
 
