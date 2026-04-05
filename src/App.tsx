@@ -4,12 +4,13 @@ import { InvoiceList } from './components/InvoiceList';
 import { ClientManager } from './components/ClientManager';
 import { DataManager } from './components/DataManager';
 import { Dashboard } from './components/Dashboard';
+import { InteractiveDashboard } from './components/InteractiveDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
 import { useInvoiceStore } from './stores/invoiceStore';
 import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
 
-type Tab = 'dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce' | 'search';
+type Tab = 'dashboard' | 'interactive-dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce' | 'search';
 
 export const App: React.FC = () => {
   const { currentInvoice, setCurrentInvoice, loadData, clients } = useInvoiceStore();
@@ -27,6 +28,8 @@ export const App: React.FC = () => {
     // Set active tab based on current URL
     if (currentPath === '/' || currentPath === '/dashboard') {
       setActiveTab('dashboard');
+    } else if (currentPath === '/interactive-dashboard') {
+      setActiveTab('interactive-dashboard');
     } else if (currentPath === '/invoices') {
       setActiveTab('invoices');
     } else if (currentPath === '/clients') {
@@ -44,6 +47,8 @@ export const App: React.FC = () => {
       const path = window.location.pathname;
       if (path === '/' || path === '/dashboard') {
         setActiveTab('dashboard');
+      } else if (path === '/interactive-dashboard') {
+        setActiveTab('interactive-dashboard');
       } else if (path === '/invoices') {
         setActiveTab('invoices');
       } else if (path === '/clients') {
@@ -65,7 +70,8 @@ export const App: React.FC = () => {
   }, [loadData]);
 
   const tabs = [
-    { id: 'dashboard' as Tab, label: 'Dashboard', icon: Home },
+    { id: 'dashboard' as Tab, label: 'Interactive Dashboard', icon: Home },
+    { id: 'interactive-dashboard' as Tab, label: 'Dashboard', icon: BarChart3 },
     { id: 'invoices' as Tab, label: 'Invoices', icon: FileText },
     { id: 'clients' as Tab, label: 'Clients', icon: Users },
     { id: 'search' as Tab, label: 'Search', icon: Search },
@@ -76,8 +82,10 @@ export const App: React.FC = () => {
   const handleTabClick = (tabId: Tab) => {
     setActiveTab(tabId);
     setIsMobileMenuOpen(false);
-    // Update browser URL to match the tab
-    const path = tabId === 'dashboard' ? '/' : `/${tabId}`;
+    // Update browser URL to match tab
+    const path = tabId === 'dashboard' ? '/' : 
+                  tabId === 'interactive-dashboard' ? '/interactive-dashboard' : 
+                  `/${tabId}`;
     window.history.pushState({}, '', path);
   };
 
@@ -95,6 +103,9 @@ export const App: React.FC = () => {
     const currentPath = window.location.pathname;
     
     // Handle main navigation paths first to prevent flash
+    if (currentPath === '/dashboard' || currentPath === '/') {
+      return <InteractiveDashboard />;
+    }
     if (currentPath === '/clients') {
       return <ClientManager />;
     }
