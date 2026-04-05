@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -54,6 +54,15 @@ interface SearchSuggestion {
   icon?: React.ReactNode;
 }
 
+interface UserPreferences {
+  defaultSearchScope: 'all' | 'invoices' | 'clients';
+  autoSaveSearches: boolean;
+  showSuggestions: boolean;
+  resultsPerPage: number;
+  defaultTemplate: string;
+  customWidgets: WidgetConfig[];
+}
+
 interface DashboardTemplate {
   id: string;
   name: string;
@@ -99,76 +108,156 @@ export const AdvancedSearch: React.FC = () => {
     customFields: {}
   });
 
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([
-    {
-      id: '1',
-      name: 'Overdue Invoices',
-      filters: {
-        query: '',
-        status: ['overdue'],
-        clientId: [],
-        dateRange: { start: '', end: '' },
-        amountRange: { min: '', max: '' },
-        tags: [],
-        customFields: {}
-      },
-      createdAt: new Date('2024-01-15'),
-      useCount: 24,
-      isDefault: false
-    },
-    {
-      id: '2',
-      name: 'High Value Clients',
-      filters: {
-        query: '',
-        status: [],
-        clientId: [],
-        dateRange: { start: '', end: '' },
-        amountRange: { min: '10000', max: '' },
-        tags: [],
-        customFields: {}
-      },
-      createdAt: new Date('2024-01-20'),
-      useCount: 18,
-      isDefault: false
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => {
+    try {
+      const saved = localStorage.getItem('advanced-search-saved-searches');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: '1',
+          name: 'Overdue Invoices',
+          filters: {
+            query: '',
+            status: ['overdue'],
+            clientId: [],
+            dateRange: { start: '', end: '' },
+            amountRange: { min: '', max: '' },
+            tags: [],
+            customFields: {}
+          },
+          createdAt: new Date(),
+          useCount: 0,
+          isDefault: false
+        },
+        {
+          id: '2',
+          name: 'High Value Clients',
+          filters: {
+            query: '',
+            status: [],
+            clientId: [],
+            dateRange: { start: '', end: '' },
+            amountRange: { min: '10000', max: '' },
+            tags: [],
+            customFields: {}
+          },
+          createdAt: new Date(),
+          useCount: 0,
+          isDefault: false
+        }
+      ];
+    } catch (error) {
+      console.error('Error loading saved searches:', error);
+      return [];
     }
-  ]);
-
-  const [dashboardTemplates] = useState<DashboardTemplate[]>([
-    {
-      id: '1',
-      name: 'Executive Overview',
-      description: 'High-level metrics and trends for executives',
-      layout: [
-        { id: '1', type: 'stats', title: 'Revenue Overview', position: { x: 0, y: 0, w: 4, h: 2 }, config: {}, isVisible: true },
-        { id: '2', type: 'chart', title: 'Revenue Trend', position: { x: 4, y: 0, w: 8, h: 3 }, config: {}, isVisible: true },
-        { id: '3', type: 'kpi', title: 'Key Metrics', position: { x: 0, y: 2, w: 12, h: 2 }, config: {}, isVisible: true }
-      ],
-      isDefault: true,
-      category: 'business'
-    },
-    {
-      id: '2',
-      name: 'Freelancer Dashboard',
-      description: 'Focused on project tracking and payments',
-      layout: [
-        { id: '1', type: 'stats', title: 'Project Stats', position: { x: 0, y: 0, w: 6, h: 2 }, config: {}, isVisible: true },
-        { id: '2', type: 'table', title: 'Recent Invoices', position: { x: 6, y: 0, w: 6, h: 4 }, config: {}, isVisible: true },
-        { id: '3', type: 'activity', title: 'Recent Activity', position: { x: 0, y: 2, w: 12, h: 2 }, config: {}, isVisible: true }
-      ],
-      isDefault: true,
-      category: 'freelancer'
-    }
-  ]);
-
-  const [userPreferences, setUserPreferences] = useState({
-    defaultSearchScope: 'all',
-    autoSaveSearches: true,
-    showSuggestions: true,
-    resultsPerPage: 20,
-    defaultTemplate: '1',
-    customWidgets: [] as WidgetConfig[]
   });
+
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>(() => {
+    try {
+      const saved = localStorage.getItem('advanced-search-preferences');
+      return saved ? JSON.parse(saved) : {
+        defaultSearchScope: 'all',
+        resultsPerPage: 20,
+        defaultTemplate: 'executive',
+        autoSaveSearches: true,
+        showSuggestions: true
+      };
+    } catch (error) {
+      console.error('Error loading user preferences:', error);
+      return {
+        defaultSearchScope: 'all',
+        resultsPerPage: 20,
+        defaultTemplate: 'executive',
+        autoSaveSearches: true,
+        showSuggestions: true
+      };
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('advanced-search-saved-searches', JSON.stringify(savedSearches));
+    } catch (error) {
+      console.error('Error saving saved searches:', error);
+    }
+  }, [savedSearches]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('advanced-search-preferences', JSON.stringify(userPreferences));
+    } catch (error) {
+      console.error('Error saving user preferences:', error);
+    }
+  }, [userPreferences]);
+
+  const [dashboardTemplates, setDashboardTemplates] = useState<DashboardTemplate[]>(() => {
+    try {
+      const saved = localStorage.getItem('advanced-search-dashboard-templates');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: '1',
+          name: 'Executive Overview',
+          description: 'High-level metrics and trends for executives',
+          layout: [
+            { id: '1', type: 'stats', title: 'Revenue Overview', position: { x: 0, y: 0, w: 4, h: 2 }, config: {}, isVisible: true },
+            { id: '2', type: 'chart', title: 'Revenue Trend', position: { x: 4, y: 0, w: 8, h: 3 }, config: {}, isVisible: true },
+            { id: '3', type: 'kpi', title: 'Key Metrics', position: { x: 0, y: 2, w: 12, h: 2 }, config: {}, isVisible: true }
+          ],
+          isDefault: true,
+          category: 'business'
+        },
+        {
+          id: '2',
+          name: 'Freelancer Dashboard',
+          description: 'Focused on project tracking and payments',
+          layout: [
+            { id: '1', type: 'stats', title: 'Project Stats', position: { x: 0, y: 0, w: 6, h: 2 }, config: {}, isVisible: true },
+            { id: '2', type: 'table', title: 'Recent Invoices', position: { x: 6, y: 0, w: 6, h: 4 }, config: {}, isVisible: true },
+            { id: '3', type: 'activity', title: 'Recent Activity', position: { x: 0, y: 2, w: 12, h: 2 }, config: {}, isVisible: true }
+          ],
+          isDefault: true,
+          category: 'freelancer'
+        }
+      ];
+    } catch (error) {
+      console.error('Error loading dashboard templates:', error);
+      return [];
+    }
+  });
+
+  // Save dashboard templates to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('advanced-search-dashboard-templates', JSON.stringify(dashboardTemplates));
+    } catch (error) {
+      console.error('Error saving dashboard templates:', error);
+    }
+  }, [dashboardTemplates]);
+
+  const createNewTemplate = () => {
+    const name = prompt('Enter a name for the new template:');
+    if (name) {
+      const newTemplate: DashboardTemplate = {
+        id: Date.now().toString(),
+        name,
+        description: 'Custom dashboard template',
+        layout: [
+          { id: '1', type: 'stats', title: 'Statistics', position: { x: 0, y: 0, w: 12, h: 2 }, config: {}, isVisible: true }
+        ],
+        isDefault: false,
+        category: 'custom'
+      };
+      setDashboardTemplates(prev => [...prev, newTemplate]);
+    }
+  };
+
+  const useTemplate = (template: DashboardTemplate) => {
+    // Apply template to user preferences
+    setUserPreferences(prev => ({ ...prev, defaultTemplate: template.id }));
+    console.log('Applied template:', template.name);
+    
+    // Navigate to dashboard with template
+    window.location.href = '/dashboard?template=' + template.id;
+  };
 
   // Generate search suggestions
   const searchSuggestions = useMemo((): SearchSuggestion[] => {
@@ -352,18 +441,42 @@ export const AdvancedSearch: React.FC = () => {
           clientName: client?.name || 'Unknown'
         };
       }),
-      exportedAt: new Date()
+      exportedAt: new Date(),
+      totalResults: filteredResults.length
     };
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    // Create CSV format for better compatibility
+    const csvContent = [
+      'Invoice Number,Client Name,Issue Date,Due Date,Amount,Status,Notes',
+      ...data.results.map(inv => [
+        inv.invoiceNumber,
+        inv.clientName,
+        new Date(inv.issueDate).toLocaleDateString(),
+        new Date(inv.dueDate).toLocaleDateString(),
+        inv.total.toFixed(2),
+        inv.status,
+        inv.notes || ''
+      ].join(','))
+    ].join('\n');
+    
+    // Export as CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `search-results-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `search-results-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    // Also save to localStorage as backup
+    try {
+      localStorage.setItem('advanced-search-last-export', JSON.stringify(data));
+      console.log('Search results exported successfully');
+    } catch (error) {
+      console.error('Error saving export to localStorage:', error);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -750,10 +863,27 @@ export const AdvancedSearch: React.FC = () => {
                       </td>
                       <td className="py-3 px-2 sm:px-4">
                         <div className="flex items-center gap-1 sm:gap-2">
-                          <button className="text-blue-600 hover:text-blue-800 p-1">
+                          <button 
+                            onClick={() => {
+                              // Navigate to invoice view - open in new tab or modal
+                              console.log('View invoice:', invoice.id);
+                              // For now, navigate to invoices page with the invoice ID
+                              window.location.href = `/invoices?view=${invoice.id}`;
+                            }}
+                            className="text-blue-600 hover:text-blue-800 p-1"
+                            title="View Invoice"
+                          >
                             <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
-                          <button className="text-gray-600 hover:text-gray-800 p-1">
+                          <button 
+                            onClick={() => {
+                              // Navigate to invoice edit
+                              console.log('Edit invoice:', invoice.id);
+                              window.location.href = `/invoices?edit=${invoice.id}`;
+                            }}
+                            className="text-gray-600 hover:text-gray-800 p-1"
+                            title="Edit Invoice"
+                          >
                             <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                         </div>
@@ -771,7 +901,7 @@ export const AdvancedSearch: React.FC = () => {
       <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h2 className="text-lg font-semibold text-gray-900">Dashboard Templates</h2>
-          <button className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button onClick={createNewTemplate} className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Create Template</span>
             <span className="sm:hidden">Create</span>
@@ -798,7 +928,7 @@ export const AdvancedSearch: React.FC = () => {
               </div>
               
               <div className="flex gap-2">
-                <button className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                <button onClick={() => useTemplate(template)} className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                   Use Template
                 </button>
                 <button className="px-3 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
@@ -824,7 +954,7 @@ export const AdvancedSearch: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Default Search Scope</label>
             <select
               value={userPreferences.defaultSearchScope}
-              onChange={(e) => setUserPreferences(prev => ({ ...prev, defaultSearchScope: e.target.value }))}
+              onChange={(e) => setUserPreferences(prev => ({ ...prev, defaultSearchScope: e.target.value as 'all' | 'invoices' | 'clients' }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Data</option>
@@ -837,7 +967,7 @@ export const AdvancedSearch: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Results Per Page</label>
             <select
               value={userPreferences.resultsPerPage}
-              onChange={(e) => setUserPreferences(prev => ({ ...prev, resultsPerPage: parseInt(e.target.value) }))}
+              onChange={(e) => setUserPreferences(prev => ({ ...prev, resultsPerPage: parseInt(e.target.value) as number }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="10">10</option>
@@ -851,7 +981,7 @@ export const AdvancedSearch: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Default Dashboard Template</label>
             <select
               value={userPreferences.defaultTemplate}
-              onChange={(e) => setUserPreferences(prev => ({ ...prev, defaultTemplate: e.target.value }))}
+              onChange={(e) => setUserPreferences(prev => ({ ...prev, defaultTemplate: e.target.value as string }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               {dashboardTemplates.map(template => (
@@ -865,7 +995,7 @@ export const AdvancedSearch: React.FC = () => {
               type="checkbox"
               id="autoSave"
               checked={userPreferences.autoSaveSearches}
-              onChange={(e) => setUserPreferences(prev => ({ ...prev, autoSaveSearches: e.target.checked }))}
+              onChange={(e) => setUserPreferences(prev => ({ ...prev, autoSaveSearches: e.target.checked as boolean }))}
               className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <label htmlFor="autoSave" className="text-sm text-gray-700">Auto-save searches</label>
@@ -876,7 +1006,7 @@ export const AdvancedSearch: React.FC = () => {
               type="checkbox"
               id="showSuggestions"
               checked={userPreferences.showSuggestions}
-              onChange={(e) => setUserPreferences(prev => ({ ...prev, showSuggestions: e.target.checked }))}
+              onChange={(e) => setUserPreferences(prev => ({ ...prev, showSuggestions: e.target.checked as boolean }))}
               className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <label htmlFor="showSuggestions" className="text-sm text-gray-700">Show search suggestions</label>
