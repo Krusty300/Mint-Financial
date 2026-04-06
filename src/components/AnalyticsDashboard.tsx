@@ -578,14 +578,6 @@ export const AnalyticsDashboard: React.FC = () => {
               </button>
               
               <button
-                onClick={() => window.location.href = '/data?action=export'}
-                className="w-full flex items-center gap-3 p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">Export Data</span>
-              </button>
-              
-              <button
                 onClick={() => window.location.href = '/search'}
                 className="w-full flex items-center gap-3 p-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >

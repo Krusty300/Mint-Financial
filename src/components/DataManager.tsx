@@ -1,13 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Download, Database, RefreshCw, AlertCircle, Play } from 'lucide-react';
 import { useInvoiceStore } from '../stores/invoiceStore';
 import { generateSampleData } from '../utils/sampleData';
 
-interface DataManagerProps {
-  isExporting?: boolean;
-}
-
-export const DataManager: React.FC<DataManagerProps> = ({ isExporting: externalIsExporting }) => {
+export const DataManager: React.FC = () => {
   const { 
     invoices, 
     clients, 
@@ -19,28 +15,8 @@ export const DataManager: React.FC<DataManagerProps> = ({ isExporting: externalI
   } = useInvoiceStore();
   
   const [isImporting, setIsImporting] = useState(false);
-  const [isExporting, setIsExporting] = useState(externalIsExporting || false);
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [importMessage, setImportMessage] = useState('');
-  const exportTriggeredRef = useRef(false);
-
-  // Handle external export trigger
-  useEffect(() => {
-    if (externalIsExporting && !isExporting && !exportTriggeredRef.current) {
-      exportTriggeredRef.current = true;
-      setIsExporting(true);
-      // Trigger export functionality
-      exportData();
-      // Reset after a short delay
-      setTimeout(() => {
-        setIsExporting(false);
-        exportTriggeredRef.current = false;
-      }, 1000);
-    } else if (!externalIsExporting) {
-      // Reset ref when external trigger is false
-      exportTriggeredRef.current = false;
-    }
-  }, [externalIsExporting, isExporting]); // Remove exportData from dependencies
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -257,10 +257,6 @@ export const Dashboard: React.FC = () => {
   }, [stats]);
 
   // Quick action handlers
-  const handleCreateInvoice = () => {
-    window.location.href = '/invoices?action=new';
-  };
-
   const handleSendReminder = () => {
     const overdueInvoices = filteredInvoices.filter(inv => inv.status === 'overdue');
     if (overdueInvoices.length === 0) {
@@ -820,7 +816,7 @@ export const Dashboard: React.FC = () => {
         <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <button
-            onClick={handleCreateInvoice}
+            onClick={() => window.location.href = '/invoices?action=new'}
             className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -832,13 +828,6 @@ export const Dashboard: React.FC = () => {
           >
             <Send className="w-4 h-4" />
             <span className="text-sm font-medium">Send Reminders</span>
-          </button>
-          <button
-            onClick={() => window.location.href = '/data?action=export'}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            <span className="text-sm font-medium">Export Report</span>
           </button>
           <button
             onClick={() => window.location.href = '/analytics-dashboard'}

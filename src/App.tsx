@@ -17,7 +17,6 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('analytics-dashboard');
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Load data on component mount
@@ -44,18 +43,9 @@ export const App: React.FC = () => {
       }
     }
     
-    // Handle export action
-    if (action === 'export' && currentPath === '/data') {
-      setIsExporting(true);
-      setActiveTab('data');
-      window.history.replaceState({}, '', '/data');
-      return;
-    }
-    
     // Reset states when setting active tabs
     setIsCreatingInvoice(false);
     setIsCreatingClient(false);
-    setIsExporting(false);
     
     // Set active tab based on current URL
     if (currentPath === '/' || currentPath === '/analytics-dashboard') {
@@ -95,18 +85,9 @@ export const App: React.FC = () => {
         }
       }
       
-      // Handle export action
-      if (action === 'export' && path === '/data') {
-        setIsExporting(true);
-        setActiveTab('data');
-        window.history.replaceState({}, '', '/data');
-        return;
-      }
-      
       // Reset states when navigating via browser
       setIsCreatingInvoice(false);
       setIsCreatingClient(false);
-      setIsExporting(false);
       
       if (path === '/' || path === '/analytics-dashboard') {
         setActiveTab('analytics-dashboard');
@@ -145,10 +126,9 @@ export const App: React.FC = () => {
   const handleTabClick = (tabId: Tab) => {
     setActiveTab(tabId);
     setIsMobileMenuOpen(false);
-    // Reset creation/export states when navigating away
+    // Reset creation states when navigating away
     setIsCreatingInvoice(false);
     setIsCreatingClient(false);
-    setIsExporting(false);
     // Update browser URL to match tab
     const path = tabId === 'analytics-dashboard' ? '/' : 
                   tabId === 'dashboard' ? '/dashboard' : 
@@ -186,7 +166,7 @@ export const App: React.FC = () => {
       return <AdvancedSearch />;
     }
     if (currentPath === '/data') {
-      return <DataManager isExporting={isExporting} />;
+      return <DataManager />;
     }
     if (currentPath === '/ecommerce') {
       return (
