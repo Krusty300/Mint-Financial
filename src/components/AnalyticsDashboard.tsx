@@ -128,11 +128,13 @@ export const AnalyticsDashboard: React.FC = () => {
       return inv.status !== 'paid' && dueDate < new Date();
     });
     const dueSoonInvoices = invoices.filter(inv => {
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(threeDaysFromNow.getDate() - 3);
+      if (inv.status === 'paid') return false;
       const dueDate = new Date(inv.dueDate);
-      return inv.status !== 'paid' && dueDate <= threeDaysFromNow && dueDate >= new Date();
+      const now = new Date();
+      const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+      return dueDate <= threeDaysFromNow && dueDate >= now;
     });
+    const highValueInvoices = invoices.filter(inv => inv.total > 10000 && inv.status !== 'paid');
     const totalInvoices = invoices.length;
     const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
     const totalClients = clients.length;
@@ -151,7 +153,8 @@ export const AnalyticsDashboard: React.FC = () => {
       paymentRate,
       averageInvoiceValue,
       overdueInvoices,
-      dueSoonInvoices
+      dueSoonInvoices,
+      highValueInvoices
     };
   }, [invoices, clients]);
 
@@ -188,13 +191,13 @@ export const AnalyticsDashboard: React.FC = () => {
     }
 
     // High value invoices
-    const highValueInvoices = invoices.filter(inv => inv.total > 10000 && inv.status !== 'paid');
-    if (highValueInvoices.length > 0) {
+    // Check for high value invoices (over $10,000)
+    if (metrics.highValueInvoices.length > 0) {
       newAlerts.push({
         id: 'highValue-' + Date.now(),
         type: 'highValue',
         title: 'High Value Invoices',
-        message: `${highValueInvoices.length} high-value invoice(s) pending - Follow up!`,
+        message: `${metrics.highValueInvoices.length} high-value invoice(s) pending - Follow up!`,
         severity: 'medium',
         timestamp: new Date(),
         isRead: false,
