@@ -5,9 +5,10 @@ import type { Client } from '../types';
 
 interface ClientManagerProps {
   isAddingClient?: boolean;
+  onClientFormClose?: () => void;
 }
 
-export const ClientManager: React.FC<ClientManagerProps> = ({ isAddingClient: externalIsAddingClient }) => {
+export const ClientManager: React.FC<ClientManagerProps> = ({ isAddingClient: externalIsAddingClient, onClientFormClose }) => {
   const { clients, addClient, updateClient, deleteClient, invoices } = useInvoiceStore();
   const [isAddingClient, setIsAddingClient] = useState(externalIsAddingClient || false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -25,6 +26,13 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ isAddingClient: ex
       setIsAddingClient(true);
     }
   }, [externalIsAddingClient, isAddingClient]);
+
+  // Notify parent when internal state changes (e.g., when user cancels)
+  useEffect(() => {
+    if (!isAddingClient && externalIsAddingClient) {
+      onClientFormClose?.();
+    }
+  }, [isAddingClient, externalIsAddingClient, onClientFormClose]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -64,6 +72,8 @@ export const ClientManager: React.FC<ClientManagerProps> = ({ isAddingClient: ex
     setNewTag('');
     setCustomFieldKey('');
     setCustomFieldValue('');
+    // Notify parent component that form was closed
+    onClientFormClose?.();
   };
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -157,7 +157,10 @@ export const App: React.FC = () => {
       return <Dashboard />;
     }
     if (currentPath === '/clients') {
-      return <ClientManager isAddingClient={isCreatingClient} />;
+      return <ClientManager 
+        isAddingClient={isCreatingClient} 
+        onClientFormClose={() => setIsCreatingClient(false)}
+      />;
     }
     if (currentPath === '/invoices') {
       return <InvoiceList onCreateInvoice={() => setIsCreatingInvoice(true)} />;
