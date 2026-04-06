@@ -1,54 +1,54 @@
-# 🏦 Mint Financial - Invoice Builder Application
+Mint Financial - Invoice Builder Application
 
 A comprehensive, modern invoice management system built with React, TypeScript, and Tailwind CSS. Features real-time updates, mobile-responsive design, and advanced financial management capabilities.
 
 Features
 
-### 📱 **Mobile-Responsive Design**
+Mobile-Responsive Design
 - **Progressive Web App** with mobile-first approach
 - **Touch-friendly interface** optimized for all devices
 - **Responsive dashboard** with adaptive charts and KPIs
 - **Mobile card views** for invoice management
 
-### 📊 **Dashboard & Analytics**
+Dashboard & Analytics
 - **Real-time KPIs** with auto-refresh functionality
 - **Interactive charts** (Revenue trends, Status breakdown)
 - **Revenue targets** and growth rate tracking
 - **Outstanding invoice** monitoring
 
-### 🧾 **Invoice Management**
+Invoice Management
 - **Create, Edit, Delete** invoices with intuitive forms
 - **Invoice preview** with professional PDF generation
 - **Status tracking** (Draft, Sent, Paid, Overdue)
 - **Bulk operations** for efficient management
 - **Advanced filtering** and search capabilities
 
-### 👥 **Client Management**
+Client Management
 - **Client dashboard** with detailed insights
 - **Client reports** and analytics
 - **Client portal** for invoice access
 - **CRM integration** with client lifecycle management
 
-### 🛒 **E-commerce Integration**
+E-commerce Integration
 - **Product catalog** management
 - **Order processing** and tracking
 - **Shipping management** system
 - **Tax management** and configuration
 - **Return processing** workflow
 
-### 🔄 **Real-Time Features**
+Real-Time Features
 - **WebSocket integration** for live updates
 - **Activity feed** with real-time notifications
 - **Live invoice status** changes
 - **Real-time notifications** for new invoices and payments
 
-### 📄 **Export & Reporting**
+Export & Reporting
 - **PDF generation** with custom templates
 - **Image export** for dashboard snapshots
 - **JSON export** for data portability
 - **Comprehensive reporting** and analytics
 
-## 🛠 Technology Stack
+Technology Stack
 
 - **Frontend**: React 18 + TypeScript
 - **Styling**: Tailwind CSS
@@ -59,9 +59,9 @@ Features
 - **Build Tool**: Vite
 - **Icons**: Lucide React
 
-## 🚀 Quick Start
+Quick Start
 
-### Prerequisites
+Prerequisites
 
 - Node.js 16+ 
 - npm or yarn
