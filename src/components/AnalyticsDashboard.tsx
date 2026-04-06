@@ -53,7 +53,7 @@ interface Activity {
 }
 
 export const AnalyticsDashboard: React.FC = () => {
-  const { invoices, clients, setCurrentInvoice, loadData } = useInvoiceStore();
+  const { invoices, clients, loadData } = useInvoiceStore();
   const [widgets, setWidgets] = useState<Widget[]>([
     {
       id: 'revenue',
@@ -409,7 +409,7 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Invoice Status</h3>
               <button 
-                onClick={() => setCurrentInvoice(null)}
+                onClick={() => window.location.href = '/invoices?action=new'}
                 className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 title="Create New Invoice"
               >
@@ -554,7 +554,7 @@ export const AnalyticsDashboard: React.FC = () => {
             
             <div className="space-y-2">
               <button
-                onClick={() => setCurrentInvoice(null)}
+                onClick={() => window.location.href = '/invoices?action=new'}
                 className="w-full flex items-center gap-3 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
@@ -570,7 +570,7 @@ export const AnalyticsDashboard: React.FC = () => {
               </button>
               
               <button
-                onClick={() => window.location.href = '/clients'}
+                onClick={() => window.location.href = '/clients?action=new'}
                 className="w-full flex items-center gap-3 p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <Users className="w-4 h-4" />
@@ -578,7 +578,7 @@ export const AnalyticsDashboard: React.FC = () => {
               </button>
               
               <button
-                onClick={() => window.location.href = '/data'}
+                onClick={() => window.location.href = '/data?action=export'}
                 className="w-full flex items-center gap-3 p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
               >
                 <Eye className="w-4 h-4" />

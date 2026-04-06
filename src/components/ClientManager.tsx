@@ -1,11 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Edit, Trash2, Building2, Mail, Phone, MapPin, Globe, Tag, FileText, Users, TrendingUp, AlertCircle, CheckCircle, X, Search, Filter, Star } from 'lucide-react';
 import { useInvoiceStore } from '../stores/invoiceStore';
 import type { Client } from '../types';
 
-export const ClientManager: React.FC = () => {
+interface ClientManagerProps {
+  isAddingClient?: boolean;
+}
+
+export const ClientManager: React.FC<ClientManagerProps> = ({ isAddingClient: externalIsAddingClient }) => {
   const { clients, addClient, updateClient, deleteClient, invoices } = useInvoiceStore();
-  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [isAddingClient, setIsAddingClient] = useState(externalIsAddingClient || false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<Client['status'] | 'all'>('all');
@@ -14,6 +18,13 @@ export const ClientManager: React.FC = () => {
   const [newTag, setNewTag] = useState('');
   const [customFieldKey, setCustomFieldKey] = useState('');
   const [customFieldValue, setCustomFieldValue] = useState('');
+  
+  // Handle external add client trigger
+  useEffect(() => {
+    if (externalIsAddingClient && !isAddingClient) {
+      setIsAddingClient(true);
+    }
+  }, [externalIsAddingClient, isAddingClient]);
   
   const [formData, setFormData] = useState({
     name: '',

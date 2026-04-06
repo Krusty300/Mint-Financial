@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import type { Invoice, Client } from '../types';
+
+// Module-level variable to track last export time
+let lastExportTime = 0;
+
 import { 
   initDatabase, 
   saveInvoice, 
@@ -169,6 +173,13 @@ export const useInvoiceStore = create<InvoiceStore>((set, get) => {
     },
     
     exportData: () => {
+      // Prevent multiple rapid exports
+      const now = Date.now();
+      if (lastExportTime && now - lastExportTime < 1000) {
+        return;
+      }
+      lastExportTime = now;
+      
       const data = {
         invoices: getAllInvoices(),
         clients: getAllClients()

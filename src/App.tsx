@@ -16,6 +16,8 @@ export const App: React.FC = () => {
   const { currentInvoice, setCurrentInvoice, loadData, clients } = useInvoiceStore();
   const [activeTab, setActiveTab] = useState<Tab>('analytics-dashboard');
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Load data on component mount
@@ -24,6 +26,36 @@ export const App: React.FC = () => {
     
     // Handle URL-based routing for dropdown menu items
     const currentPath = window.location.pathname;
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    
+    // Handle create invoice action
+    if (action === 'new') {
+      if (currentPath === '/invoices') {
+        setIsCreatingInvoice(true);
+        setActiveTab('invoices');
+        window.history.replaceState({}, '', '/invoices');
+        return;
+      } else if (currentPath === '/clients') {
+        setIsCreatingClient(true);
+        setActiveTab('clients');
+        window.history.replaceState({}, '', '/clients');
+        return;
+      }
+    }
+    
+    // Handle export action
+    if (action === 'export' && currentPath === '/data') {
+      setIsExporting(true);
+      setActiveTab('data');
+      window.history.replaceState({}, '', '/data');
+      return;
+    }
+    
+    // Reset states when setting active tabs
+    setIsCreatingInvoice(false);
+    setIsCreatingClient(false);
+    setIsExporting(false);
     
     // Set active tab based on current URL
     if (currentPath === '/' || currentPath === '/analytics-dashboard') {
@@ -45,6 +77,37 @@ export const App: React.FC = () => {
     // Listen for browser navigation (back/forward buttons)
     const handlePopState = () => {
       const path = window.location.pathname;
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      
+      // Handle create invoice action
+      if (action === 'new') {
+        if (path === '/invoices') {
+          setIsCreatingInvoice(true);
+          setActiveTab('invoices');
+          window.history.replaceState({}, '', '/invoices');
+          return;
+        } else if (path === '/clients') {
+          setIsCreatingClient(true);
+          setActiveTab('clients');
+          window.history.replaceState({}, '', '/clients');
+          return;
+        }
+      }
+      
+      // Handle export action
+      if (action === 'export' && path === '/data') {
+        setIsExporting(true);
+        setActiveTab('data');
+        window.history.replaceState({}, '', '/data');
+        return;
+      }
+      
+      // Reset states when navigating via browser
+      setIsCreatingInvoice(false);
+      setIsCreatingClient(false);
+      setIsExporting(false);
+      
       if (path === '/' || path === '/analytics-dashboard') {
         setActiveTab('analytics-dashboard');
       } else if (path === '/dashboard') {
@@ -82,6 +145,10 @@ export const App: React.FC = () => {
   const handleTabClick = (tabId: Tab) => {
     setActiveTab(tabId);
     setIsMobileMenuOpen(false);
+    // Reset creation/export states when navigating away
+    setIsCreatingInvoice(false);
+    setIsCreatingClient(false);
+    setIsExporting(false);
     // Update browser URL to match tab
     const path = tabId === 'analytics-dashboard' ? '/' : 
                   tabId === 'dashboard' ? '/dashboard' : 
@@ -110,7 +177,7 @@ export const App: React.FC = () => {
       return <Dashboard />;
     }
     if (currentPath === '/clients') {
-      return <ClientManager />;
+      return <ClientManager isAddingClient={isCreatingClient} />;
     }
     if (currentPath === '/invoices') {
       return <InvoiceList onCreateInvoice={() => setIsCreatingInvoice(true)} />;
@@ -119,7 +186,7 @@ export const App: React.FC = () => {
       return <AdvancedSearch />;
     }
     if (currentPath === '/data') {
-      return <DataManager />;
+      return <DataManager isExporting={isExporting} />;
     }
     if (currentPath === '/ecommerce') {
       return (

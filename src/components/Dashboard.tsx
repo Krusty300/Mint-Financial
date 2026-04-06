@@ -834,14 +834,14 @@ export const Dashboard: React.FC = () => {
             <span className="text-sm font-medium">Send Reminders</span>
           </button>
           <button
-            onClick={() => alert('Export functionality coming soon!')}
+            onClick={() => window.location.href = '/data?action=export'}
             className="flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             <Download className="w-4 h-4" />
             <span className="text-sm font-medium">Export Report</span>
           </button>
           <button
-            onClick={() => alert('Analytics dashboard coming soon!')}
+            onClick={() => window.location.href = '/analytics-dashboard'}
             className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             <TrendingUp className="w-4 h-4" />
