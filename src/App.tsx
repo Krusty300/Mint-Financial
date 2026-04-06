@@ -70,11 +70,11 @@ export const App: React.FC = () => {
   }, [loadData]);
 
   const tabs = [
+    { id: 'search' as Tab, label: 'Search', icon: Search },
     { id: 'analytics-dashboard' as Tab, label: 'Analytics Dashboard', icon: Home },
     { id: 'dashboard' as Tab, label: 'Reports Dashboard', icon: BarChart3 },
     { id: 'invoices' as Tab, label: 'Invoices', icon: FileText },
     { id: 'clients' as Tab, label: 'Clients', icon: Users },
-    { id: 'search' as Tab, label: 'Search', icon: Search },
     { id: 'ecommerce' as Tab, label: 'E-commerce', icon: ShoppingCart },
     { id: 'data' as Tab, label: 'Data', icon: Database }
   ];
