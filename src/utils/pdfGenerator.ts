@@ -130,16 +130,7 @@ export const generatePDF = (invoice: Invoice, client: Client, company?: {
     yPosition += 6;
   }
   
-  if (client.companySize && client.companySize.trim()) {
-    doc.text(`Size: ${client.companySize}`, 20, yPosition);
-    yPosition += 6;
-  }
-  
-  if (client.taxId && client.taxId.trim()) {
-    doc.text(`Tax ID: ${wrapText(client.taxId, 35)}`, 20, yPosition);
-    yPosition += 6;
-  }
-  
+    
     
   // Add items table
   yPosition += 15;
@@ -530,19 +521,8 @@ const generatePDFContent = (doc: any, invoice: Invoice, client: Client, company?
   if (client.industry && client.industry.trim()) {
     doc.text(`Industry: ${wrapText(client.industry, 35)}`, 20, yPosition);
     yPosition += 6;
-    doc.text(`Industry: ${client.industry}`, 20, yPosition);
-    yPosition += 5;
   }
   
-  if (client.companySize && client.companySize.trim()) {
-    doc.text(`Company Size: ${client.companySize}`, 20, yPosition);
-    yPosition += 5;
-  }
-  
-  if (client.taxId && client.taxId.trim()) {
-    doc.text(`Tax ID: ${client.taxId}`, 20, yPosition);
-    yPosition += 5;
-  }
   
     yPosition += 15;
   doc.setFont('helvetica', 'bold');

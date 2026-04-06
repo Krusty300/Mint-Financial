@@ -379,19 +379,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
                 <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.industry}</p>
               </div>
             )}
-            {selectedClient.companySize && (
-              <div className="space-y-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-700">Company Size</p>
-                <p className="text-xs sm:text-sm text-gray-900 capitalize">{selectedClient.companySize}</p>
-              </div>
-            )}
-            {selectedClient.taxId && (
-              <div className="space-y-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-700">Tax ID</p>
-                <p className="text-xs sm:text-sm text-gray-900 break-words">{selectedClient.taxId}</p>
-              </div>
-            )}
-            {selectedClient.tags && selectedClient.tags.length > 0 && (
+                        {selectedClient.tags && selectedClient.tags.length > 0 && (
               <div className="sm:col-span-2 space-y-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Tags</p>
                 <div className="flex flex-wrap gap-1">
