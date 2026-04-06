@@ -34,20 +34,20 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         aria-expanded={isOpen}
         tabIndex={0}
       >
-        <Calendar className="w-4 h-4 text-gray-400" />
-        <span className="text-gray-900 flex-1 min-w-0">
+        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <span className="text-gray-900 flex-1 min-w-0 truncate">
           {displayDate}
         </span>
-        <ChevronDown className="w-4 h-4 text-gray-400" />
+        <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
       </div>
       
       {isOpen && (
-        <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-10 p-2">
+        <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-10 p-2 w-full sm:w-auto">
           <input
             type="date"
             value={value}
             onChange={handleDateChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm"
             autoFocus
             onClick={(e) => e.stopPropagation()}
           />
