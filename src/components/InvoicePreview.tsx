@@ -110,6 +110,103 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     }
   };
 
+  const handlePrint = () => {
+    // Use the onPrint prop if provided, otherwise use default print behavior
+    if (onPrint) {
+      onPrint();
+    } else {
+      // Default print behavior - create a clean, print-optimized version of invoice
+      const printWindow = window.open('', '_blank');
+      
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Invoice ${invoice.invoiceNumber}</title>
+              <style>
+                @page {
+                  margin: 0.5in;
+                  size: A4;
+                }
+                body {
+                  font-family: 'Helvetica', 'Arial', sans-serif;
+                  font-size: 12px;
+                  line-height: 1.4;
+                  color: #333;
+                  margin: 0;
+                  padding: 20px;
+                }
+                .invoice-header {
+                  text-align: center;
+                  margin-bottom: 30px;
+                }
+                .invoice-title {
+                  font-size: 24px;
+                  font-weight: bold;
+                  margin-bottom: 10px;
+                }
+                .invoice-details {
+                  margin-bottom: 30px;
+                }
+                .invoice-table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin-bottom: 30px;
+                }
+                .invoice-table th,
+                .invoice-table td {
+                  border: 1px solid #ddd;
+                  padding: 8px;
+                  text-align: left;
+                }
+                .invoice-table th {
+                  background-color: #f5f5f5;
+                  font-weight: bold;
+                }
+                .invoice-total {
+                  text-align: right;
+                  font-weight: bold;
+                  margin-top: 20px;
+                }
+                .invoice-footer {
+                  margin-top: 30px;
+                  text-align: center;
+                  font-size: 10px;
+                  color: #666;
+                }
+                @media print {
+                  body {
+                    padding: 0;
+                  }
+                  .no-print {
+                    display: none !important;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <!-- Clean invoice content only -->
+            </body>
+          </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Wait for content to load, then print
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+          
+          // Close after printing (with delay for mobile)
+          setTimeout(() => {
+            printWindow.close();
+          }, 1000);
+        }, 500);
+      }
+    }
+  };
+
   const InvoiceContent = () => (
     <div className={`${styles.container} ${isFullscreen ? 'min-h-screen' : 'max-w-4xl mx-auto'} overflow-x-auto`}>
       {/* Header */}
@@ -281,9 +378,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                 <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
               <button
-                onClick={onPrint}
+                onClick={handlePrint}
                 className="p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Print"
+                title="Print Invoice (Optimized for Mobile)"
               >
                 <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
