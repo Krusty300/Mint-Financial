@@ -388,22 +388,63 @@ const fallbackMobileDownload = (pdfBlob: Blob, invoiceNumber: string) => {
     });
     downloadLink.dispatchEvent(event);
     
+    // Remove link after a short delay
     setTimeout(() => {
       document.body.removeChild(downloadLink);
       URL.revokeObjectURL(pdfUrl);
-    }, 1000);
+    }, 500);
+    
+    // Check if download was successful by monitoring if the link was removed
+    setTimeout(() => {
+      // If still exists, try alternative method
+      if (document.body.contains(downloadLink)) {
+        console.log('Direct download failed, trying alternative method');
+        fallbackToNewTab(pdfUrl);
+      } else {
+        // Success! Show confirmation
+        console.log('PDF download initiated successfully');
+        if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android')) {
+          // Mobile success message
+          const successMsg = document.createElement('div');
+          successMsg.textContent = '✓ PDF download started!';
+          successMsg.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+          `;
+          document.body.appendChild(successMsg);
+          
+          setTimeout(() => {
+            if (document.body.contains(successMsg)) {
+              document.body.removeChild(successMsg);
+            }
+          }, 3000);
+        }
+      }
+    }, 100);
     
   } catch (error) {
     console.warn('Direct download failed, opening in new tab');
-    
-    // Final fallback: open in new tab with instructions
-    window.open(pdfUrl, '_blank');
-    
-    setTimeout(() => {
-      alert('PDF opened in new tab. Use browser menu to save/download the PDF.');
-      URL.revokeObjectURL(pdfUrl);
-    }, 500);
+    fallbackToNewTab(pdfUrl);
   }
+};
+
+// Separate function for new tab fallback
+const fallbackToNewTab = (pdfUrl: string) => {
+  window.open(pdfUrl, '_blank');
+  
+  setTimeout(() => {
+    alert('PDF opened in new tab. Use browser menu to save/download the PDF.\n\nOn mobile:\n1. Tap the PDF\n2. Look for download/share icon\n3. Save to device');
+    URL.revokeObjectURL(pdfUrl);
+  }, 500);
 };
 
 // Helper function to generate PDF content (extracted from generatePDF)
