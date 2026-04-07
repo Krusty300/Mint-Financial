@@ -338,14 +338,56 @@ export const downloadInvoicePDF = (
     
     // Check if running on mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
     if (isMobile) {
       // Mobile-specific approach
       try {
-        // Method 1: Try Web Share API first (most reliable on mobile)
-        if (navigator.share && navigator.canShare && navigator.canShare({ 
+        if (isIOS) {
+          // iOS-specific download approach
+          console.log('iOS detected, using iOS-specific download method');
+          
+          // Create PDF URL for iOS
+          const iosPdfUrl = URL.createObjectURL(pdfBlob);
+          
+          // Method 1: Try direct download with iOS-specific handling
+          const downloadLink = document.createElement('a');
+          downloadLink.href = iosPdfUrl;
+          downloadLink.download = `invoice-${invoice.invoiceNumber}.pdf`;
+          downloadLink.style.display = 'none';
+          downloadLink.setAttribute('target', '_blank');
+          document.body.appendChild(downloadLink);
+          
+          // iOS-specific click event
+          const event = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+            ctrlKey: false,
+            altKey: false,
+            shiftKey: false,
+            metaKey: false
+          });
+          downloadLink.dispatchEvent(event);
+          
+          // iOS-specific delay and cleanup
+          setTimeout(() => {
+            try {
+              document.body.removeChild(downloadLink);
+            } catch (e) {
+              console.log('iOS download link already removed');
+            }
+            URL.revokeObjectURL(iosPdfUrl);
+          }, 1000);
+          
+          // Show iOS-specific success message
+          showMobileSuccessMessage('PDF download started! Check your Downloads folder.');
+          
+        } else if (navigator.share && navigator.canShare && navigator.canShare({ 
           files: [new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' })] 
         })) {
+          // Method 2: Try Web Share API for non-iOS mobile
+          console.log('Web Share API available, trying share method');
           const file = new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' });
           
           navigator.share({
@@ -354,15 +396,14 @@ export const downloadInvoicePDF = (
             files: [file]
           }).then(() => {
             console.log('PDF shared successfully via Web Share API');
-            // Show success message
             showMobileSuccessMessage('PDF shared successfully!');
           }).catch((error) => {
             console.warn('Web Share API failed, trying direct download:', error);
             fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
           });
         } else {
-          // Method 2: Direct download with mobile compatibility
-          console.log('Web Share API not available, trying direct download');
+          // Method 3: Direct download for other mobile
+          console.log('Using direct download method for non-iOS mobile');
           fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
         }
       } catch (error) {
