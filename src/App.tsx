@@ -9,6 +9,7 @@ import { AdvancedSearch } from './components/AdvancedSearch';
 import { useInvoiceStore } from './stores/invoiceStore';
 import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
+import logoIcon from './assets/logo-icon.png';
 
 type Tab = 'analytics-dashboard' | 'dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce' | 'search';
 
@@ -3615,7 +3616,7 @@ export const App: React.FC = () => {
             {/* Logo/Brand */}
             <div className="flex items-center">
               <img 
-                src="/src/assets/logo-icon.png" 
+                src={logoIcon} 
                 alt="Mint Financial" 
                 className="h-8 w-8 sm:h-10 sm:w-10"
               />
