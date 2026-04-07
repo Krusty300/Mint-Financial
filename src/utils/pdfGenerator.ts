@@ -336,23 +336,49 @@ export const downloadInvoicePDF = (
     // Create blob
     const pdfBlob = doc.output('blob');
     
-    // Check if Web Share API is available (modern mobile browsers)
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' })] })) {
-      const file = new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' });
-      
-      navigator.share({
-        title: `Invoice ${invoice.invoiceNumber}`,
-        text: `Invoice ${invoice.invoiceNumber} for ${client.name}`,
-        files: [file]
-      }).then(() => {
-        console.log('PDF shared successfully');
-      }).catch((error) => {
-        console.warn('Share failed, falling back to download:', error);
-        fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
-      });
+    // Check if running on mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Mobile-specific approach
+      try {
+        // Method 1: Try Web Share API first (most reliable on mobile)
+        if (navigator.share && navigator.canShare && navigator.canShare({ 
+          files: [new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' })] 
+        })) {
+          const file = new File([pdfBlob], `invoice-${invoice.invoiceNumber}.pdf`, { type: 'application/pdf' });
+          
+          navigator.share({
+            title: `Invoice ${invoice.invoiceNumber}`,
+            text: `Invoice ${invoice.invoiceNumber} for ${client.name}`,
+            files: [file]
+          }).then(() => {
+            console.log('PDF shared successfully via Web Share API');
+            // Show success message
+            showMobileSuccessMessage('PDF shared successfully!');
+          }).catch((error) => {
+            console.warn('Web Share API failed, trying direct download:', error);
+            fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
+          });
+        } else {
+          // Method 2: Direct download with mobile compatibility
+          console.log('Web Share API not available, trying direct download');
+          fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
+        }
+      } catch (error) {
+        console.error('Mobile download failed:', error);
+        fallbackToNewTab(URL.createObjectURL(pdfBlob));
+      }
     } else {
-      // Fallback download method
-      fallbackMobileDownload(pdfBlob, invoice.invoiceNumber);
+      // Desktop approach
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = pdfUrl;
+      downloadLink.download = `invoice-${invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
     }
     
     return true;
@@ -368,12 +394,38 @@ export const downloadInvoicePDF = (
   }
 };
 
+// Helper function for mobile success messages
+const showMobileSuccessMessage = (message: string) => {
+  const successMsg = document.createElement('div');
+  successMsg.textContent = message;
+  successMsg.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 9999;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    animation: slideIn 0.3s ease-out;
+  `;
+  document.body.appendChild(successMsg);
+  
+  setTimeout(() => {
+    if (document.body.contains(successMsg)) {
+      document.body.removeChild(successMsg);
+    }
+  }, 3000);
+};
+
 // Helper function for mobile download fallback
 const fallbackMobileDownload = (pdfBlob: Blob, invoiceNumber: string) => {
   const pdfUrl = URL.createObjectURL(pdfBlob);
   
   try {
-    // Try direct download first
+    // Method 1: Try direct download with extended delay
     const downloadLink = document.createElement('a');
     downloadLink.href = pdfUrl;
     downloadLink.download = `invoice-${invoiceNumber}.pdf`;
@@ -388,48 +440,22 @@ const fallbackMobileDownload = (pdfBlob: Blob, invoiceNumber: string) => {
     });
     downloadLink.dispatchEvent(event);
     
-    // Remove link after a short delay
+    // Extended delay to allow download to complete
     setTimeout(() => {
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(pdfUrl);
-    }, 500);
-    
-    // Check if download was successful by monitoring if the link was removed
-    setTimeout(() => {
-      // If still exists, try alternative method
-      if (document.body.contains(downloadLink)) {
-        console.log('Direct download failed, trying alternative method');
-        fallbackToNewTab(pdfUrl);
-      } else {
-        // Success! Show confirmation
-        console.log('PDF download initiated successfully');
-        if (navigator.userAgent.includes('Mobile') || navigator.userAgent.includes('Android')) {
-          // Mobile success message
-          const successMsg = document.createElement('div');
-          successMsg.textContent = '✓ PDF download started!';
-          successMsg.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            z-index: 9999;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            animation: slideIn 0.3s ease-out;
-          `;
-          document.body.appendChild(successMsg);
-          
-          setTimeout(() => {
-            if (document.body.contains(successMsg)) {
-              document.body.removeChild(successMsg);
-            }
-          }, 3000);
-        }
+      try {
+        document.body.removeChild(downloadLink);
+      } catch (e) {
+        console.log('Link already removed or not found');
       }
-    }, 100);
+      URL.revokeObjectURL(pdfUrl);
+    }, 2000);
+    
+    // Check if download was successful after longer delay
+    setTimeout(() => {
+      // Try alternative method if needed
+      console.log('Checking download status...');
+      fallbackToNewTab(pdfUrl);
+    }, 3000);
     
   } catch (error) {
     console.warn('Direct download failed, opening in new tab');
