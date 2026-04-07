@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Eye,
   BarChart3,
-  Activity,
   GripVertical,
   Maximize2,
   Minimize2,
@@ -22,7 +21,7 @@ import { useInvoiceStore } from '../stores/invoiceStore';
 
 interface Widget {
   id: string;
-  type: 'revenue' | 'invoices' | 'clients' | 'alerts' | 'quickActions' | 'recentActivity' | 'paymentStats';
+  type: 'revenue' | 'invoices' | 'clients' | 'alerts' | 'quickActions' | 'paymentStats';
   title: string;
   size: 'small' | 'medium' | 'large';
   position: { x: number; y: number };
@@ -40,16 +39,6 @@ interface Alert {
   timestamp: Date;
   isRead: boolean;
   actionUrl?: string;
-}
-
-interface Activity {
-  id: string;
-  type: 'invoice' | 'payment' | 'client' | 'system';
-  title: string;
-  description?: string;
-  timestamp: Date;
-  icon: React.ElementType;
-  color: string;
 }
 
 export const AnalyticsDashboard: React.FC = () => {
@@ -99,20 +88,10 @@ export const AnalyticsDashboard: React.FC = () => {
       position: { x: 1, y: 1 },
       isMinimized: false,
       isExpanded: false
-    },
-    {
-      id: 'recentActivity',
-      type: 'recentActivity',
-      title: 'Recent Activity',
-      size: 'medium',
-      position: { x: 2, y: 1 },
-      isMinimized: false,
-      isExpanded: false
     }
   ]);
   
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
   const [isDragging, setIsDragging] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -210,67 +189,6 @@ export const AnalyticsDashboard: React.FC = () => {
       return Array.from(updatedAlerts).slice(0, 50);
     });
   }, [metrics]);
-
-  // Generate recent activities
-  useEffect(() => {
-    const recentActivities: Activity[] = [];
-
-    // Recent invoices
-    const recentInvoices = invoices
-      .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
-      .slice(0, 5);
-
-    for (let i = 0; i < recentInvoices.length; i++) {
-      const invoice = recentInvoices[i];
-      recentActivities.push({
-        id: 'inv-' + invoice.id,
-        type: 'invoice',
-        title: `Invoice ${invoice.invoiceNumber}`,
-        description: `Created for ${clients.find(c => c.id === invoice.clientId)?.name || 'Unknown'}`,
-        timestamp: new Date(invoice.issueDate),
-        icon: FileText,
-        color: 'text-blue-600'
-      });
-    }
-
-    // Recent payments
-    const recentPayments = invoices
-      .filter(inv => inv.status === 'paid')
-      .sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
-      .slice(0, 3);
-
-    for (let i = 0; i < recentPayments.length; i++) {
-      const invoice = recentPayments[i];
-      recentActivities.push({
-        id: 'pay-' + invoice.id,
-        type: 'payment',
-        title: `Payment Received`,
-        description: `${invoice.invoiceNumber} - $${invoice.total.toFixed(2)}`,
-        timestamp: new Date(invoice.issueDate),
-        icon: CheckCircle,
-        color: 'text-green-600'
-      });
-    }
-
-    // Recent clients
-    const recentClients = clients
-      .slice(0, 3);
-
-    for (let i = 0; i < recentClients.length; i++) {
-      const client = recentClients[i];
-      recentActivities.push({
-        id: 'client-' + client.id,
-        type: 'client',
-        title: 'New Client',
-        description: client.name + (client.company ? ` - ${client.company}` : ''),
-        timestamp: new Date(),
-        icon: Users,
-        color: 'text-purple-600'
-      });
-    }
-
-    setActivities(recentActivities.slice(0, 10));
-  }, [invoices, clients]);
 
   // Auto-refresh functionality
   useEffect(() => {
@@ -385,7 +303,7 @@ export const AnalyticsDashboard: React.FC = () => {
               
               <div className="bg-purple-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
                   <span className="text-sm font-medium text-purple-800">Payment Rate</span>
                 </div>
                 <p className="text-2xl font-bold text-purple-900">{metrics.paymentRate.toFixed(1)}%</p>
@@ -587,38 +505,6 @@ export const AnalyticsDashboard: React.FC = () => {
                 <Search className="w-4 h-4" />
                 <span className="text-sm font-medium">Advanced Search</span>
               </button>
-            </div>
-          </div>
-        );
-
-      case 'recentActivity':
-        return (
-          <div className="p-6 h-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-            
-            <div className="space-y-3 max-h-64 sm:max-h-80 overflow-y-auto">
-              {activities.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Activity className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">No recent activity</p>
-                </div>
-              ) : (
-                activities.map(activity => {
-                  const Icon = activity.icon;
-                  return (
-                    <div key={activity.id} className="flex flex-col sm:flex-row sm:items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${activity.color}`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                        <p className="text-xs text-gray-600">{activity.description}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(activity.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
             </div>
           </div>
         );
