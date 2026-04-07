@@ -15,7 +15,8 @@ import {
   Download,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Calendar
 } from 'lucide-react';
 import { useInvoiceStore } from '../stores/invoiceStore';
 import type { Invoice, Client } from '../types';
@@ -46,12 +47,30 @@ interface SavedSearch {
   isDefault: boolean;
 }
 
+interface SearchTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  filters: SearchFilters;
+  isDefault?: boolean;
+}
+
+interface SearchHistory {
+  id: string;
+  query: string;
+  timestamp: Date;
+  resultCount: number;
+  filters: SearchFilters;
+}
+
 interface SearchSuggestion {
   id: string;
   text: string;
-  type: 'invoice' | 'client' | 'tag' | 'recent';
+  type: 'invoice' | 'client' | 'amount' | 'date' | 'template';
+  icon: React.ReactNode;
+  data?: any;
   count?: number;
-  icon?: React.ReactNode;
 }
 
 interface UserPreferences {
@@ -88,6 +107,83 @@ export const AdvancedSearch: React.FC = () => {
   const [showSavedSearches, setShowSavedSearches] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [showSearchHistory, setShowSearchHistory] = useState(false);
+  const [showSearchTemplates, setShowSearchTemplates] = useState(false);
+  const [showUserPreferences, setShowUserPreferences] = useState(false);
+  
+  // Search history state
+  const [searchHistory, setSearchHistory] = useState<SearchHistory[]>(() => {
+    try {
+      const saved = localStorage.getItem('advanced-search-history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error loading search history:', error);
+      return [];
+    }
+  });
+  
+  // Search templates state
+  const [searchTemplates, setSearchTemplates] = useState<SearchTemplate[]>(() => {
+    try {
+      const saved = localStorage.getItem('advanced-search-templates');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: '1',
+          name: 'Overdue Invoices',
+          description: 'Find all overdue invoices',
+          icon: 'alert',
+          filters: {
+            query: '',
+            status: ['overdue'],
+            clientId: [],
+            dateRange: { start: '', end: '' },
+            amountRange: { min: '', max: '' },
+            tags: [],
+            customFields: {}
+          },
+          isDefault: true
+        },
+        {
+          id: '2',
+          name: 'High Value Invoices',
+          description: 'Invoices over $10,000',
+          icon: 'dollar',
+          filters: {
+            query: '',
+            status: [],
+            clientId: [],
+            dateRange: { start: '', end: '' },
+            amountRange: { min: '10000', max: '' },
+            tags: [],
+            customFields: {}
+          },
+          isDefault: false
+        },
+        {
+          id: '3',
+          name: 'Recent Invoices',
+          description: 'Invoices from last 30 days',
+          icon: 'calendar',
+          filters: {
+            query: '',
+            status: [],
+            clientId: [],
+            dateRange: { 
+              start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              end: new Date().toISOString().split('T')[0]
+            },
+            amountRange: { min: '', max: '' },
+            tags: [],
+            customFields: {}
+          },
+          isDefault: false
+        }
+      ];
+    } catch (error) {
+      console.error('Error loading search templates:', error);
+      return [];
+    }
+  });
   
   // Explicit type usage to satisfy linter
   const _invoiceType: Invoice | null = invoices[0] || null;
@@ -259,93 +355,235 @@ export const AdvancedSearch: React.FC = () => {
     window.location.href = '/dashboard?template=' + template.id;
   };
 
-  // Generate search suggestions
+  // Fuzzy search function
+  const fuzzySearch = (text: string, query: string): boolean => {
+    if (!query) return true;
+    const queryLower = query.toLowerCase();
+    const textLower = text.toLowerCase();
+    
+    // Exact match
+    if (textLower.includes(queryLower)) return true;
+    
+    // Levenshtein distance approximation (simplified)
+    const distance = (str1: string, str2: string): number => {
+      const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+      
+      for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+      for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+      
+      for (let j = 1; j <= str2.length; j++) {
+        for (let i = 1; i <= str1.length; i++) {
+          const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+          matrix[j][i] = Math.min(
+            matrix[j][i - 1] + 1,
+            matrix[j - 1][i] + 1,
+            matrix[j - 1][i - 1] + indicator
+          );
+        }
+      }
+      
+      return matrix[str2.length][str1.length];
+    };
+    
+    // Allow small typos
+    return distance(textLower, queryLower) <= Math.max(1, Math.floor(query.length * 0.3));
+  };
+
+  // Save search to history
+  const saveSearchToHistory = useCallback((query: string, resultCount: number) => {
+    if (!query.trim()) return;
+    
+    const historyItem: SearchHistory = {
+      id: Date.now().toString(),
+      query: query.trim(),
+      timestamp: new Date(),
+      resultCount,
+      filters: { ...filters, query }
+    };
+    
+    setSearchHistory(prev => {
+      // Remove duplicate and add to beginning
+      const filtered = prev.filter(item => item.query !== query.trim());
+      return [historyItem, ...filtered].slice(0, 20); // Keep last 20 searches
+    });
+  }, [filters]);
+
+  // Save search history to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('advanced-search-history', JSON.stringify(searchHistory));
+    } catch (error) {
+      console.error('Error saving search history:', error);
+    }
+  }, [searchHistory]);
+
+  // Save search templates to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('advanced-search-templates', JSON.stringify(searchTemplates));
+    } catch (error) {
+      console.error('Error saving search templates:', error);
+    }
+  }, [searchTemplates]);
+
+  // Apply search template
+  const applySearchTemplate = (template: SearchTemplate) => {
+    setFilters(template.filters);
+    setSearchQuery(template.filters.query);
+    setShowSearchTemplates(false);
+    setShowFilters(true);
+  };
+
+  // Create new search template
+  const createSearchTemplate = () => {
+    const name = prompt('Enter a name for this search template:');
+    if (name && searchQuery.trim()) {
+      const newTemplate: SearchTemplate = {
+        id: Date.now().toString(),
+        name,
+        description: `Custom template for: ${searchQuery}`,
+        icon: 'custom',
+        filters: { ...filters, query: searchQuery },
+        isDefault: false
+      };
+      setSearchTemplates(prev => [...prev, newTemplate]);
+      setShowSearchTemplates(false);
+    }
+  };
+
+  // Reset user preferences to defaults
+  const resetUserPreferences = () => {
+    const defaultPreferences: UserPreferences = {
+      defaultSearchScope: 'all',
+      resultsPerPage: 20,
+      defaultTemplate: 'executive',
+      autoSaveSearches: true,
+      showSuggestions: true,
+      customWidgets: []
+    };
+    setUserPreferences(defaultPreferences);
+  };
+
+  // Generate search suggestions with real-time search
   const searchSuggestions = useMemo((): SearchSuggestion[] => {
     const suggestions: SearchSuggestion[] = [];
+    const query = searchQuery.toLowerCase().trim();
     
-    // Recent searches (mock data)
-    const recentSearches = ['overdue invoices', 'john doe', 'high value', 'last month'];
-    recentSearches.forEach((search, index) => {
-      suggestions.push({
-        id: `recent-${index}`,
-        text: search,
-        type: 'recent',
-        icon: <Clock className="w-4 h-4" />
-      });
+    if (!query) return suggestions;
+    
+    // Add search templates as suggestions
+    searchTemplates.forEach(template => {
+      if (fuzzySearch(template.name, query) || fuzzySearch(template.description, query)) {
+        suggestions.push({
+          id: `template-${template.id}`,
+          text: template.name,
+          type: 'template' as const,
+          icon: <Settings className="w-4 h-4 text-blue-500" />,
+          data: template
+        });
+      }
     });
-
-    // Invoice suggestions
-    if (searchQuery.length > 0) {
-      const matchingInvoices = invoices
-        .filter(inv => 
-          inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          inv.notes?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .slice(0, 3);
-      
-      matchingInvoices.forEach(inv => {
+    
+    // Add recent searches from history
+    searchHistory.slice(0, 5).forEach(item => {
+      if (fuzzySearch(item.query, query)) {
         suggestions.push({
-          id: inv.id,
-          text: inv.invoiceNumber,
-          type: 'invoice',
-          count: inv.total,
-          icon: <FileText className="w-4 h-4" />
+          id: `history-${item.id}`,
+          text: item.query,
+          type: 'invoice' as const,
+          icon: <Clock className="w-4 h-4 text-gray-500" />,
+          data: item,
+          count: item.resultCount
         });
-      });
-    }
-
-    // Client suggestions
-    if (searchQuery.length > 0) {
-      const matchingClients = clients
-        .filter(client => 
-          client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          client.email.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .slice(0, 3);
-      
-      matchingClients.forEach(client => {
+      }
+    });
+    
+    // Add invoice suggestions
+    invoices.forEach(invoice => {
+      if (fuzzySearch(invoice.invoiceNumber, query) || 
+          fuzzySearch(invoice.notes || '', query)) {
         suggestions.push({
-          id: client.id,
+          id: `invoice-${invoice.id}`,
+          text: invoice.invoiceNumber,
+          type: 'invoice' as const,
+          icon: <FileText className="w-4 h-4 text-blue-500" />,
+          data: invoice,
+          count: invoice.total
+        });
+      }
+    });
+    
+    // Add client suggestions
+    clients.forEach(client => {
+      if (fuzzySearch(client.name, query) || 
+          fuzzySearch(client.email || '', query)) {
+        suggestions.push({
+          id: `client-${client.id}`,
           text: client.name,
-          type: 'client',
-          icon: <User className="w-4 h-4" />
+          type: 'client' as const,
+          icon: <User className="w-4 h-4 text-green-500" />,
+          data: client
         });
+      }
+    });
+    
+    // Add amount suggestions
+    if (query.includes('$') || query.includes('amount') || !isNaN(Number(query))) {
+      const amounts = [100, 500, 1000, 5000, 10000, 25000, 50000];
+      amounts.forEach(amount => {
+        if (fuzzySearch(`$${amount}`, query)) {
+          suggestions.push({
+            id: `amount-${amount}`,
+            text: `$${amount}`,
+            type: 'amount' as const,
+            icon: <Tag className="w-4 h-4 text-purple-500" />,
+            count: amount
+          });
+        }
       });
     }
-
-    // Tag suggestions
-    const allTags = Array.from(new Set(
-      invoices.flatMap(inv => inv.customFields ? Object.keys(inv.customFields) : [])
-    ));
-    if (searchQuery.length > 0) {
-      const matchingTags = allTags
-        .filter(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-        .slice(0, 2);
+    
+    // Add date suggestions
+    if (query.includes('today') || query.includes('yesterday') || query.includes('week') || query.includes('month')) {
+      const dates = [
+        { text: 'Today', value: new Date().toISOString().split('T')[0] },
+        { text: 'Yesterday', value: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+        { text: 'Last Week', value: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+        { text: 'Last Month', value: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
+      ];
       
-      matchingTags.forEach(tag => {
-        suggestions.push({
-          id: tag,
-          text: tag,
-          type: 'tag',
-          icon: <Tag className="w-4 h-4" />
-        });
+      dates.forEach(date => {
+        if (fuzzySearch(date.text, query)) {
+          suggestions.push({
+            id: `date-${date.value}`,
+            text: date.text,
+            type: 'date' as const,
+            icon: <Calendar className="w-4 h-4 text-orange-500" />,
+            data: date
+          });
+        }
       });
     }
-
-    return suggestions;
-  }, [searchQuery, invoices, clients]);
+    
+    // Remove duplicates and limit to 10 suggestions
+    const uniqueSuggestions = suggestions.filter((suggestion, index, self) => 
+      index === self.findIndex(s => s.text === suggestion.text)
+    );
+    
+    return uniqueSuggestions.slice(0, 10);
+  }, [searchQuery, invoices, clients, searchHistory, searchTemplates]);
 
   // Apply filters and search
   const filteredResults = useMemo(() => {
     let filtered = invoices;
 
-    // Apply text search
+    // Apply text search with fuzzy matching
     if (filters.query || searchQuery) {
       const query = (filters.query || searchQuery).toLowerCase();
       filtered = filtered.filter(inv => 
-        inv.invoiceNumber.toLowerCase().includes(query) ||
-        inv.notes?.toLowerCase().includes(query) ||
-        clients.find(c => c.id === inv.clientId)?.name.toLowerCase().includes(query)
+        fuzzySearch(inv.invoiceNumber, query) ||
+        fuzzySearch(inv.notes || '', query) ||
+        fuzzySearch(clients.find(c => c.id === inv.clientId)?.name || '', query)
       );
     }
 
@@ -379,7 +617,14 @@ export const AdvancedSearch: React.FC = () => {
     }
 
     return filtered;
-  }, [invoices, clients, filters, searchQuery]);
+  }, [invoices, clients, filters, searchQuery, fuzzySearch]);
+
+  // Save search to history when results change
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      saveSearchToHistory(searchQuery, filteredResults.length);
+    }
+  }, [searchQuery, filteredResults.length, saveSearchToHistory]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -494,13 +739,64 @@ export const AdvancedSearch: React.FC = () => {
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || searchSuggestions.length === 0) return;
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < searchSuggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0 && searchSuggestions[selectedSuggestionIndex]) {
+          handleSuggestionClick(searchSuggestions[selectedSuggestionIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Search Header */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Advanced Search</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mint Global Search</h1>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setShowUserPreferences(!showUserPreferences)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Preferences</span>
+              <span className="sm:hidden">Prefs</span>
+            </button>
+            <button
+              onClick={() => setShowSearchHistory(!showSearchHistory)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Clock className="w-4 h-4" />
+              <span className="hidden sm:inline">History</span>
+              <span className="sm:hidden">Hist</span>
+            </button>
+            <button
+              onClick={() => setShowSearchTemplates(!showSearchTemplates)}
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Templates</span>
+              <span className="sm:hidden">Temp</span>
+            </button>
             <button
               onClick={() => setShowSavedSearches(!showSavedSearches)}
               className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -533,42 +829,25 @@ export const AdvancedSearch: React.FC = () => {
                   setShowSuggestions(true);
                   setSelectedSuggestionIndex(-1);
                 }}
+                onKeyDown={handleKeyDown}
                 onFocus={() => setShowSuggestions(true)}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setSelectedSuggestionIndex(prev => 
-                      prev < searchSuggestions.length - 1 ? prev + 1 : prev
-                    );
-                  } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
-                  } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
-                    e.preventDefault();
-                    handleSuggestionClick(searchSuggestions[selectedSuggestionIndex]);
-                  } else if (e.key === 'Escape') {
-                    setShowSuggestions(false);
-                  }
-                }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="Search invoices, clients, amounts..."
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg"
               />
               {searchQuery && (
                 <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setFilters(prev => ({ ...prev, query: '' }));
-                  }}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               )}
             </div>
             
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg transition-colors ${
+              className={`flex items-center justify-center gap-2 px-4 sm:px-4 py-3 rounded-lg transition-colors touch-manipulation ${
                 showFilters 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -581,7 +860,7 @@ export const AdvancedSearch: React.FC = () => {
             
             <button
               onClick={saveCurrentSearch}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 sm:px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors touch-manipulation"
             >
               <Save className="w-5 h-5" />
               <span className="hidden sm:inline">Save Search</span>
@@ -607,7 +886,7 @@ export const AdvancedSearch: React.FC = () => {
                     <div className="font-medium text-gray-900 truncate">{suggestion.text}</div>
                     <div className="text-sm text-gray-500 capitalize">
                       {suggestion.type}
-                      {suggestion.count && ` • ${formatCurrency(suggestion.count)}`}
+                      {suggestion.count && ` ${formatCurrency(suggestion.count)}`}
                     </div>
                   </div>
                 </div>
@@ -615,6 +894,100 @@ export const AdvancedSearch: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Search History Panel */}
+        {showSearchHistory && (
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Search History</h2>
+              <button
+                onClick={() => setShowSearchHistory(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {searchHistory.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No search history yet</p>
+              ) : (
+                searchHistory.map(item => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setSearchQuery(item.query);
+                      setFilters(item.filters);
+                      setShowSearchHistory(false);
+                    }}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 truncate">{item.query}</div>
+                      <div className="text-xs text-gray-500">
+                        {item.resultCount} results
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {formatDate(item.timestamp)}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Search Templates Panel */}
+        {showSearchTemplates && (
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Search Templates</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={createSearchTemplate}
+                  className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={!searchQuery.trim()}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Create Template</span>
+                  <span className="sm:hidden">Create</span>
+                </button>
+                <button
+                  onClick={() => setShowSearchTemplates(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {searchTemplates.map(template => (
+                <div
+                  key={template.id}
+                  onClick={() => applySearchTemplate(template)}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-gray-900">{template.name}</h3>
+                    {template.isDefault && (
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                    )}
+                  </div>
+                  
+                  <div className="text-sm text-gray-600 mb-3">
+                    {template.description}
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>Click to apply</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Advanced Filters */}
         {showFilters && (
@@ -870,10 +1243,10 @@ export const AdvancedSearch: React.FC = () => {
                               // For now, navigate to invoices page with the invoice ID
                               window.location.href = `/invoices?view=${invoice.id}`;
                             }}
-                            className="text-blue-600 hover:text-blue-800 p-1"
+                            className="text-blue-600 hover:text-blue-800 p-1.5 sm:p-1 rounded hover:bg-blue-50 transition-colors touch-manipulation"
                             title="View Invoice"
                           >
-                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Eye className="w-4 h-4 sm:w-4 sm:h-4" />
                           </button>
                           <button 
                             onClick={() => {
@@ -881,10 +1254,10 @@ export const AdvancedSearch: React.FC = () => {
                               console.log('Edit invoice:', invoice.id);
                               window.location.href = `/invoices?edit=${invoice.id}`;
                             }}
-                            className="text-gray-600 hover:text-gray-800 p-1"
+                            className="text-gray-600 hover:text-gray-800 p-1.5 sm:p-1 rounded hover:bg-gray-50 transition-colors touch-manipulation"
                             title="Edit Invoice"
                           >
-                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Edit className="w-4 h-4 sm:w-4 sm:h-4" />
                           </button>
                         </div>
                       </td>
@@ -941,13 +1314,25 @@ export const AdvancedSearch: React.FC = () => {
       </div>
 
       {/* User Preferences Section */}
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">User Preferences</h2>
-          <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-            Reset to Defaults
-          </button>
-        </div>
+      {showUserPreferences && (
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">User Preferences</h2>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={resetUserPreferences}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                onClick={() => setShowUserPreferences(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
@@ -1013,6 +1398,7 @@ export const AdvancedSearch: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

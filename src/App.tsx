@@ -11,7 +11,7 @@ import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
 import logoIcon from './assets/logo-icon.png';
 
-type Tab = 'analytics-dashboard' | 'dashboard' | 'invoices' | 'clients' | 'data' | 'ecommerce' | 'search';
+type Tab = 'analytics-dashboard' | 'dashboard' | 'invoices' | 'clients' | 'data' | 'search';
 
 export const App: React.FC = () => {
   const { currentInvoice, setCurrentInvoice, loadData, clients } = useInvoiceStore();
@@ -57,8 +57,6 @@ export const App: React.FC = () => {
       setActiveTab('invoices');
     } else if (currentPath === '/clients') {
       setActiveTab('clients');
-    } else if (currentPath === '/ecommerce' || currentPath.startsWith('/ecommerce/')) {
-      setActiveTab('ecommerce');
     } else if (currentPath === '/search') {
       setActiveTab('search');
     } else if (currentPath === '/data') {
@@ -98,8 +96,6 @@ export const App: React.FC = () => {
         setActiveTab('invoices');
       } else if (path === '/clients') {
         setActiveTab('clients');
-      } else if (path === '/ecommerce' || path.startsWith('/ecommerce/')) {
-        setActiveTab('ecommerce');
       } else if (path === '/search') {
         setActiveTab('search');
       } else if (path === '/data') {
@@ -120,7 +116,6 @@ export const App: React.FC = () => {
     { id: 'dashboard' as Tab, label: 'Reports Dashboard', icon: BarChart3 },
     { id: 'invoices' as Tab, label: 'Invoices', icon: FileText },
     { id: 'clients' as Tab, label: 'Clients', icon: Users },
-    { id: 'ecommerce' as Tab, label: 'E-commerce', icon: ShoppingCart },
     { id: 'data' as Tab, label: 'Data', icon: Database }
   ];
 
