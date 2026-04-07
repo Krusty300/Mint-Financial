@@ -3614,7 +3614,11 @@ export const App: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo/Brand */}
             <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Mint Financial</h1>
+              <img 
+                src="/src/assets/logo-icon.png" 
+                alt="Mint Financial" 
+                className="h-8 w-8 sm:h-10 sm:w-10"
+              />
             </div>
             
             {/* Desktop Navigation */}
