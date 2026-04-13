@@ -12,11 +12,7 @@ import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { useInvoiceStore } from './stores/invoiceStore';
 import { useKeyboardShortcuts, COMMON_SHORTCUTS } from './services/keyboardShortcuts';
-import FeatureTour from './components/FeatureTour';
-import FeatureHighlights from './components/FeatureHighlights';
-import ProgressiveDisclosure from './components/ProgressiveDisclosure';
 import WelcomeDashboard from './components/WelcomeDashboard';
-import UserSetup from './components/UserSetup';
 import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
 import logoIcon from './assets/logo-icon.png';
@@ -30,10 +26,6 @@ export const App: React.FC = () => {
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { registerShortcut } = useKeyboardShortcuts();
-
-  // Feature Discovery State
-  const [showFeatureTour, setShowFeatureTour] = useState(false);
-  const [tourCompleted, setTourCompleted] = useState(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -164,13 +156,7 @@ export const App: React.FC = () => {
       }
     });
 
-    registerShortcut('feature-tour', {
-      ...COMMON_SHORTCUTS.HELP,
-      action: () => {
-        setShowFeatureTour(true);
-      }
-    });
-
+    
     registerShortcut('export', {
       ...COMMON_SHORTCUTS.EXPORT,
       action: () => {
@@ -3852,34 +3838,11 @@ export const App: React.FC = () => {
       </nav>
 
       <main className="py-4 sm:py-8">
-        <ProgressiveDisclosure>
-          {renderContent()}
-        </ProgressiveDisclosure>
+        {renderContent()}
       </main>
       
       <KeyboardShortcutsHelp />
       <GlobalLoadingIndicator />
-      
-      {/* Feature Discovery Components */}
-      <FeatureTour
-        isOpen={showFeatureTour}
-        onClose={() => setShowFeatureTour(false)}
-        onComplete={() => setTourCompleted(true)}
-        autoStart={!tourCompleted}
-      />
-      
-      <FeatureHighlights autoHideOnCompletion={true} />
-      {/* <ContextualTooltips autoHideOnCompletion={true} /> */}
-      
-      {/* User Setup Modal */}
-      <UserSetup 
-        onComplete={(name) => {
-          // Store user name in localStorage for WelcomeDashboard
-          localStorage.setItem('user-name', name);
-          // Force re-render to update welcome message
-          setActiveTab(prev => prev);
-        }} 
-      />
     </div>
     </LoadingProvider>
   );

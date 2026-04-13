@@ -767,49 +767,41 @@ export const AdvancedSearch: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="max-w-7xl mx-auto px-3 py-4 sm:px-6 sm:py-6 space-y-4 sm:space-y-6">
       {/* Search Header */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mint Global Search</h1>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setShowUserPreferences(!showUserPreferences)}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Preferences</span>
-              <span className="sm:hidden">Prefs</span>
-            </button>
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Advanced Search</h1>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowSearchHistory(!showSearchHistory)}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <Clock className="w-4 h-4" />
-              <span className="hidden sm:inline">History</span>
-              <span className="sm:hidden">Hist</span>
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Search History</span>
+              <span className="sm:hidden">History</span>
             </button>
             <button
               onClick={() => setShowSearchTemplates(!showSearchTemplates)}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Templates</span>
-              <span className="sm:hidden">Temp</span>
+              <Tag className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Search Templates</span>
+              <span className="sm:hidden">Templates</span>
             </button>
             <button
               onClick={() => setShowSavedSearches(!showSavedSearches)}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <Bookmark className="w-4 h-4" />
+              <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Saved Searches</span>
               <span className="sm:hidden">Saved</span>
             </button>
             <button
               onClick={exportResults}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Export</span>
               <span className="sm:hidden">Exp</span>
             </button>
@@ -818,9 +810,9 @@ export const AdvancedSearch: React.FC = () => {
 
         {/* Main Search Bar */}
         <div className="relative">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -833,36 +825,36 @@ export const AdvancedSearch: React.FC = () => {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="Search invoices, clients, amounts..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg"
+                className="w-full pl-9 sm:pl-10 pr-10 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base sm:text-lg"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1.5 sm:p-1 rounded-full hover:bg-gray-100 transition-colors"
                 >
-                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
             
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center justify-center gap-2 px-4 sm:px-4 py-3 rounded-lg transition-colors touch-manipulation ${
+              className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors touch-manipulation ${
                 showFilters 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <Filter className="w-5 h-5" />
+              <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Filters</span>
               <span className="sm:hidden">Filter</span>
             </button>
             
             <button
               onClick={saveCurrentSearch}
-              className="flex items-center justify-center gap-2 px-4 sm:px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors touch-manipulation"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors touch-manipulation"
             >
-              <Save className="w-5 h-5" />
+              <Save className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">Save Search</span>
               <span className="sm:hidden">Save</span>
             </button>
@@ -870,21 +862,21 @@ export const AdvancedSearch: React.FC = () => {
 
           {/* Search Suggestions */}
           {showSuggestions && searchSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 sm:mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 sm:max-h-64 overflow-y-auto">
               {searchSuggestions.map((suggestion, index) => (
                 <div
                   key={suggestion.id}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className={`flex items-center gap-3 px-3 sm:px-4 py-3 cursor-pointer transition-colors ${
+                  className={`flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-3 cursor-pointer transition-colors ${
                     index === selectedSuggestionIndex 
                       ? 'bg-blue-50 border-l-4 border-blue-600' 
                       : 'hover:bg-gray-50'
                   }`}
                 >
-                  {suggestion.icon}
+                  <div className="w-4 h-4 sm:w-5 sm:h-5">{suggestion.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{suggestion.text}</div>
-                    <div className="text-sm text-gray-500 capitalize">
+                    <div className="font-medium text-sm sm:text-base text-gray-900 truncate">{suggestion.text}</div>
+                    <div className="text-xs sm:text-sm text-gray-500 capitalize">
                       {suggestion.type}
                       {suggestion.count && ` ${formatCurrency(suggestion.count)}`}
                     </div>
@@ -1170,34 +1162,34 @@ export const AdvancedSearch: React.FC = () => {
       )}
 
       {/* Search Results */}
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 lg:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">
             Search Results ({filteredResults.length})
           </h2>
-          <div className="text-sm text-gray-500">
+          <div className="text-xs sm:text-sm text-gray-500">
             Showing {filteredResults.length} of {invoices.length} invoices
           </div>
         </div>
 
         {filteredResults.length === 0 ? (
-          <div className="text-center py-12">
-            <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
-            <p className="text-gray-500 px-4">Try adjusting your search terms or filters</p>
+          <div className="text-center py-8 sm:py-12">
+            <Search className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <p className="text-gray-500 px-2 sm:px-4 text-sm sm:text-base">Try adjusting your search terms or filters</p>
           </div>
         ) : (
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
             <table className="w-full min-w-full sm:min-w-0">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Invoice</th>
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Client</th>
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap hidden sm:table-cell">Date</th>
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap hidden sm:table-cell">Due Date</th>
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Amount</th>
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Status</th>
-                  <th className="text-left py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Actions</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Invoice</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Client</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap hidden sm:table-cell">Date</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap hidden sm:table-cell">Due Date</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Amount</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Status</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1205,26 +1197,26 @@ export const AdvancedSearch: React.FC = () => {
                   const client = clients.find(c => c.id === invoice.clientId);
                   return (
                     <tr key={invoice.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-2 sm:px-4">
-                        <div className="font-medium text-gray-900 text-sm">{invoice.invoiceNumber}</div>
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4">
+                        <div className="font-medium text-sm sm:text-base text-gray-900">{invoice.invoiceNumber}</div>
                         {invoice.notes && (
-                          <div className="text-xs text-gray-500 truncate max-w-24 sm:max-w-xs">{invoice.notes}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-20 sm:max-w-24 lg:max-w-xs">{invoice.notes}</div>
                         )}
                       </td>
-                      <td className="py-3 px-2 sm:px-4">
-                        <div className="font-medium text-gray-900 text-sm">{client?.name || 'Unknown'}</div>
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4">
+                        <div className="font-medium text-sm sm:text-base text-gray-900">{client?.name || 'Unknown'}</div>
                         <div className="text-xs text-gray-500 hidden sm:block">{client?.email}</div>
                       </td>
-                      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
                         {formatDate(invoice.issueDate)}
                       </td>
-                      <td className="py-3 px-2 sm:px-4 text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4 text-xs sm:text-sm text-gray-700 hidden sm:table-cell">
                         {formatDate(invoice.dueDate)}
                       </td>
-                      <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-sm">
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4 font-medium text-sm sm:text-base text-gray-900">
                         {formatCurrency(invoice.total)}
                       </td>
-                      <td className="py-3 px-2 sm:px-4">
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                           invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
                           invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
@@ -1234,7 +1226,7 @@ export const AdvancedSearch: React.FC = () => {
                           {invoice.status}
                         </span>
                       </td>
-                      <td className="py-3 px-2 sm:px-4">
+                      <td className="py-2 sm:py-3 px-2 sm:px-3 lg:px-4">
                         <div className="flex items-center gap-1 sm:gap-2">
                           <button 
                             onClick={() => {
@@ -1243,10 +1235,10 @@ export const AdvancedSearch: React.FC = () => {
                               // For now, navigate to invoices page with the invoice ID
                               window.location.href = `/invoices?view=${invoice.id}`;
                             }}
-                            className="text-blue-600 hover:text-blue-800 p-1.5 sm:p-1 rounded hover:bg-blue-50 transition-colors touch-manipulation"
+                            className="text-blue-600 hover:text-blue-800 p-1 sm:p-1.5 rounded hover:bg-blue-50 transition-colors touch-manipulation"
                             title="View Invoice"
                           >
-                            <Eye className="w-4 h-4 sm:w-4 sm:h-4" />
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                           <button 
                             onClick={() => {
@@ -1254,10 +1246,22 @@ export const AdvancedSearch: React.FC = () => {
                               console.log('Edit invoice:', invoice.id);
                               window.location.href = `/invoices?edit=${invoice.id}`;
                             }}
-                            className="text-gray-600 hover:text-gray-800 p-1.5 sm:p-1 rounded hover:bg-gray-50 transition-colors touch-manipulation"
+                            className="text-gray-600 hover:text-gray-800 p-1 sm:p-1.5 rounded hover:bg-gray-50 transition-colors touch-manipulation"
                             title="Edit Invoice"
                           >
-                            <Edit className="w-4 h-4 sm:w-4 sm:h-4" />
+                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </button>
+                          <button 
+                            onClick={() => {
+                              console.log('Delete invoice:', invoice.id);
+                              if (confirm('Are you sure you want to delete this invoice?')) {
+                                // TODO: Implement delete functionality
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-800 p-1 sm:p-1.5 rounded hover:bg-red-50 transition-colors touch-manipulation"
+                            title="Delete Invoice"
+                          >
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                         </div>
                       </td>
