@@ -182,4 +182,8 @@ export const COMMON_SHORTCUTS = {
     ctrlKey: true,
     description: 'Refresh data',
   },
+  HELP: {
+    key: '?',
+    description: 'Show feature tour and help',
+  },
 };
