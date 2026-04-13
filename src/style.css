@@ -1,3 +1,6 @@
+/* eslint-disable */
+/* stylelint-disable at-rule-no-unknown */
+@import './styles/mobile.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,4 +17,46 @@
 /* Apply custom font to body */
 body {
   font-family: 'Robert Medium', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Mobile viewport improvements */
+@viewport {
+  width: device-width;
+  initial-scale: 1;
+  maximum-scale: 5;
+  user-scalable: 1;
+}
+
+/* Prevent text selection on touch devices */
+@media (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  button, a, .clickable {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Better touch feedback */
+@media (pointer: coarse) {
+  button, .btn, .clickable {
+    transition: transform 0.1s ease;
+  }
+  
+  button:active, .btn:active, .clickable:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Mobile-safe input sizing */
+@media (pointer: coarse) and (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+    line-height: 1.5;
+  }
 }

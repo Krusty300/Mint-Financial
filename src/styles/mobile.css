@@ -1,0 +1,197 @@
+/* eslint-disable */
+/* stylelint-disable at-rule-no-unknown */
+/* Mobile-First Touch Target Improvements */
+
+/* Base touch-friendly sizing */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Enhanced button touch targets */
+.btn-touch {
+  @apply px-4 py-3 min-h-[44px] min-w-[44px] flex items-center justify-center;
+  @apply text-sm font-medium rounded-lg transition-all duration-200;
+  @apply active:scale-95 active:shadow-lg;
+}
+
+/* Small touch targets for tight spaces */
+.btn-touch-sm {
+  @apply p-2 min-h-[40px] min-w-[40px] flex items-center justify-center;
+  @apply rounded-md transition-all duration-200;
+  @apply active:scale-95;
+}
+
+/* Form inputs with better touch targets */
+.input-touch {
+  @apply px-4 py-3 min-h-[44px] text-base;
+  @apply border border-gray-300 rounded-lg;
+  @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply transition-all duration-200;
+}
+
+/* Select dropdowns */
+.select-touch {
+  @apply px-4 py-3 min-h-[44px] text-base appearance-none;
+  @apply border border-gray-300 rounded-lg;
+  @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply transition-all duration-200;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Checkbox and radio improvements */
+.checkbox-touch {
+  @apply w-5 h-5 min-w-[20px] min-h-[20px];
+  @apply text-blue-600 border-gray-300 rounded;
+  @apply focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply transition-all duration-200;
+}
+
+/* Navigation improvements */
+.nav-item-touch {
+  @apply px-4 py-3 min-h-[48px] min-w-[48px];
+  @apply flex items-center gap-3 text-base font-medium;
+  @apply rounded-lg transition-all duration-200;
+  @apply active:scale-95;
+}
+
+/* Card touch targets */
+.card-touch {
+  @apply p-4 rounded-lg border border-gray-200;
+  @apply transition-all duration-200;
+  @apply active:scale-[0.98] active:shadow-md;
+}
+
+/* List items */
+.list-item-touch {
+  @apply px-4 py-3 min-h-[48px];
+  @apply flex items-center gap-3 border-b border-gray-100;
+  @apply transition-all duration-200;
+  @apply active:bg-gray-50;
+}
+
+/* Tab improvements */
+.tab-touch {
+  @apply px-4 py-3 min-h-[44px] min-w-[44px];
+  @apply flex items-center justify-center text-sm font-medium;
+  @apply rounded-lg transition-all duration-200;
+  @apply active:scale-95;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Increase touch targets on mobile */
+  .btn-touch {
+    @apply min-h-[48px] px-6 text-base;
+  }
+  
+  .btn-touch-sm {
+    @apply min-h-[44px] p-3;
+  }
+  
+  .input-touch,
+  .select-touch {
+    @apply min-h-[48px] py-4 text-lg;
+  }
+  
+  .nav-item-touch {
+    @apply min-h-[52px] px-6 text-lg;
+  }
+  
+  .card-touch {
+    @apply p-6;
+  }
+  
+  .list-item-touch {
+    @apply min-h-[52px] px-6;
+  }
+  
+  /* Better spacing for touch */
+  .touch-spacing > * + * {
+    @apply mt-4;
+  }
+  
+  /* Prevent accidental zoom on input focus */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Haptic feedback simulation with visual feedback */
+.haptic-feedback {
+  @apply transition-transform duration-100;
+}
+
+.haptic-feedback:active {
+  transform: scale(0.95);
+}
+
+/* Safe area handling for notched phones */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Pull-to-refresh indicator */
+.pull-to-refresh {
+  @apply flex items-center justify-center py-4;
+  @apply text-gray-500 text-sm;
+  transition: transform 0.3s ease;
+}
+
+.pull-to-refresh.active {
+  transform: rotate(180deg);
+}
+
+/* Mobile gesture hints */
+.gesture-hint {
+  @apply absolute bottom-4 left-1/2 transform -translate-x-1/2;
+  @apply bg-black bg-opacity-75 text-white px-3 py-2 rounded-full text-xs;
+  @apply pointer-events-none;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  20%, 80% { opacity: 1; }
+}
+
+/* Improved focus states for keyboard navigation */
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Mobile scroll improvements */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent text selection on touch buttons */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

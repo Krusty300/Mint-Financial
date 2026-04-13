@@ -6,7 +6,12 @@ import { DataManager } from './components/DataManager';
 import { Dashboard } from './components/Dashboard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { UndoRedoToolbar } from './components/UndoRedoToolbar';
+import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
+import { LoadingProvider } from './contexts/LoadingContext';
 import { useInvoiceStore } from './stores/invoiceStore';
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from './services/keyboardShortcuts';
 import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
 import logoIcon from './assets/logo-icon.png';
@@ -14,11 +19,12 @@ import logoIcon from './assets/logo-icon.png';
 type Tab = 'analytics-dashboard' | 'dashboard' | 'invoices' | 'clients' | 'data' | 'search';
 
 export const App: React.FC = () => {
-  const { currentInvoice, setCurrentInvoice, loadData, clients } = useInvoiceStore();
+  const { currentInvoice, setCurrentInvoice, loadData, clients, exportData } = useInvoiceStore();
   const [activeTab, setActiveTab] = useState<Tab>('analytics-dashboard');
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { registerShortcut } = useKeyboardShortcuts();
 
   // Load data on component mount
   useEffect(() => {
@@ -109,6 +115,100 @@ export const App: React.FC = () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, [loadData]);
+
+  // Register keyboard shortcuts
+  useEffect(() => {
+    registerShortcut('new-invoice', {
+      ...COMMON_SHORTCUTS.NEW_INVOICE,
+      action: () => {
+        setIsCreatingInvoice(true);
+        setActiveTab('invoices');
+        window.history.pushState({}, '', '/invoices');
+      }
+    });
+
+    registerShortcut('save', {
+      ...COMMON_SHORTCUTS.SAVE,
+      action: () => {
+        // Save current invoice if one is open
+        if (currentInvoice) {
+          // Trigger save logic - this would be handled by the InvoiceForm component
+          console.log('Save shortcut triggered');
+        }
+      }
+    });
+
+    registerShortcut('search', {
+      ...COMMON_SHORTCUTS.SEARCH,
+      action: () => {
+        setActiveTab('search');
+        window.history.pushState({}, '', '/search');
+      }
+    });
+
+    registerShortcut('export', {
+      ...COMMON_SHORTCUTS.EXPORT,
+      action: () => {
+        exportData();
+      }
+    });
+
+    registerShortcut('refresh', {
+      ...COMMON_SHORTCUTS.REFRESH,
+      action: () => {
+        loadData();
+      }
+    });
+
+    registerShortcut('undo', {
+      ...COMMON_SHORTCUTS.UNDO,
+      action: () => {
+        // This will be handled by the UndoRedoToolbar component
+        const event = new CustomEvent('undo');
+        window.dispatchEvent(event);
+      }
+    });
+
+    registerShortcut('redo', {
+      ...COMMON_SHORTCUTS.REDO,
+      action: () => {
+        // This will be handled by the UndoRedoToolbar component
+        const event = new CustomEvent('redo');
+        window.dispatchEvent(event);
+      }
+    });
+
+    // Tab navigation shortcuts
+    registerShortcut('tab-1', {
+      key: '1',
+      description: 'Go to Analytics Dashboard',
+      action: () => handleTabClick('analytics-dashboard')
+    });
+
+    registerShortcut('tab-2', {
+      key: '2',
+      description: 'Go to Reports Dashboard',
+      action: () => handleTabClick('dashboard')
+    });
+
+    registerShortcut('tab-3', {
+      key: '3',
+      description: 'Go to Invoices',
+      action: () => handleTabClick('invoices')
+    });
+
+    registerShortcut('tab-4', {
+      key: '4',
+      description: 'Go to Clients',
+      action: () => handleTabClick('clients')
+    });
+
+    registerShortcut('tab-5', {
+      key: '5',
+      description: 'Go to Data',
+      action: () => handleTabClick('data')
+    });
+  }, [registerShortcut, currentInvoice, loadData, exportData]);
 
   const tabs = [
     { id: 'search' as Tab, label: 'Search', icon: Search },
@@ -3604,9 +3704,10 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <LoadingProvider>
+      <div className="min-h-screen bg-gray-50">
+        <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo/Brand */}
             <div className="flex items-center">
@@ -3619,25 +3720,32 @@ export const App: React.FC = () => {
             
             {/* Desktop Navigation */}
             {!currentInvoice && !isCreatingInvoice && (
-              <div className="hidden sm:flex items-center space-x-1">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => handleTabClick(tab.id)}
-                      className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
-                        activeTab === tab.id
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              <>
+                <div className="hidden sm:flex items-center space-x-1">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => handleTabClick(tab.id)}
+                        className={`flex items-center gap-3 px-4 py-3 min-h-[48px] text-sm font-medium transition-all duration-200 rounded-lg hover:scale-105 active:scale-95 ${
+                          activeTab === tab.id
+                            ? 'bg-blue-100 text-blue-700 shadow-md'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                        <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <div className="hidden sm:block">
+                  <UndoRedoToolbar />
+                </div>
+              </>
             )}
             
             {/* Mobile menu button */}
@@ -3645,7 +3753,7 @@ export const App: React.FC = () => {
               <div className="sm:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  className="p-3 min-h-[48px] min-w-[48px] rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200 active:scale-95"
                 >
                   {isMobileMenuOpen ? (
                     <X className="w-6 h-6" />
@@ -3682,13 +3790,13 @@ export const App: React.FC = () => {
                     <button
                       key={tab.id}
                       onClick={() => handleTabClick(tab.id)}
-                      className={`flex items-center gap-3 w-full px-3 py-2 text-base font-medium transition-colors rounded-lg ${
+                      className={`flex items-center gap-4 w-full px-6 py-4 min-h-[56px] text-base font-medium transition-all duration-200 rounded-lg active:scale-95 ${
                         activeTab === tab.id
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'bg-blue-100 text-blue-700 shadow-md'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-6 h-6" />
                       <span>{tab.label}</span>
                     </button>
                   );
@@ -3702,6 +3810,10 @@ export const App: React.FC = () => {
       <main className="py-4 sm:py-8">
         {renderContent()}
       </main>
+      
+      <KeyboardShortcutsHelp />
+      <GlobalLoadingIndicator />
     </div>
+    </LoadingProvider>
   );
 };

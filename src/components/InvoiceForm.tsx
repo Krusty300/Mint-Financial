@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Save, Download, Plus, Trash2 } from 'lucide-react';
+import { Save, Download } from 'lucide-react';
 import { useInvoiceStore } from '../stores/invoiceStore';
+import { useUndoRedo } from '../services/undoRedo';
+import { useAsyncOperation } from '../contexts/LoadingContext';
 import type { Invoice, InvoiceItem } from '../types';
 import { DatePicker } from './DatePicker';
+import { DraggableInvoiceItems } from './DraggableInvoiceItems';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
 
 interface InvoiceFormProps {
@@ -19,6 +22,9 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
     generateInvoiceNumber,
     loadData
   } = useInvoiceStore();
+  
+  const { trackAction } = useUndoRedo();
+  const { executeAsync } = useAsyncOperation();
 
   // Enhanced form state
   const [selectedTemplate, setSelectedTemplate] = useState<string>('modern');
@@ -44,8 +50,14 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
 
   // Load data on component mount
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const loadInitialData = async () => {
+      await executeAsync(async () => {
+        await loadData();
+      }, 'loadInitialData');
+    };
+    
+    loadInitialData();
+  }, [loadData, executeAsync]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -150,7 +162,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const invoice: Invoice = {
       id: currentInvoice?.id || Date.now().toString(),
       invoiceNumber: formData.invoiceNumber,
@@ -172,65 +184,86 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
       companyLogo: formData.companyLogo
     };
 
-    if (currentInvoice) {
-      updateInvoice(currentInvoice.id, invoice);
-    } else {
-      addInvoice(invoice);
-      setCurrentInvoice(invoice);
-    }
+    await executeAsync(async () => {
+      if (currentInvoice) {
+        // Track undo/redo action for updates
+        trackAction({
+          type: 'update',
+          entityType: 'invoice',
+          data: invoice,
+          previousData: currentInvoice,
+          description: `Updated invoice ${invoice.invoiceNumber}`
+        });
+        
+        updateInvoice(currentInvoice.id, invoice);
+      } else {
+        // Track undo/redo action for creation
+        trackAction({
+          type: 'create',
+          entityType: 'invoice',
+          data: invoice,
+          description: `Created invoice ${invoice.invoiceNumber}`
+        });
+        
+        addInvoice(invoice);
+        setCurrentInvoice(invoice);
+      }
+    }, 'saveInvoice');
     
     onClose?.();
   };
 
-  const handleExportPDF = () => {
-    const invoice: Invoice = {
-      id: currentInvoice?.id || Date.now().toString(),
-      invoiceNumber: formData.invoiceNumber,
-      clientId: formData.clientId,
-      issueDate: new Date(formData.issueDate),
-      dueDate: new Date(formData.dueDate),
-      status: formData.status,
-      items: formData.items,
-      subtotal: calculateSubtotal(),
-      taxRate: formData.taxRate,
-      total: calculateTotal(),
-      notes: formData.notes,
-      paymentTerms: formData.paymentTerms
-    };
+  const handleExportPDF = async () => {
+    await executeAsync(async () => {
+      const invoice: Invoice = {
+        id: currentInvoice?.id || Date.now().toString(),
+        invoiceNumber: formData.invoiceNumber,
+        clientId: formData.clientId,
+        issueDate: new Date(formData.issueDate),
+        dueDate: new Date(formData.dueDate),
+        status: formData.status,
+        items: formData.items,
+        subtotal: calculateSubtotal(),
+        taxRate: formData.taxRate,
+        total: calculateTotal(),
+        notes: formData.notes,
+        paymentTerms: formData.paymentTerms
+      };
 
-    // Get client information
-    const client = clients.find(c => c.id === invoice.clientId);
-    
-    // Ensure we have valid client information for PDF
-    const clientForPDF = client || {
-      id: 'unknown',
-      name: 'No Client Selected',
-      email: '',
-      phone: '',
-      address: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      status: 'active' as const
-    };
-    
-    // Create company information from invoice data (prioritize saved data over form defaults)
-    const company = {
-      name: invoice.companyName || formData.companyName,
-      address: invoice.companyAddress || formData.companyAddress,
-      phone: invoice.companyPhone || formData.companyPhone,
-      email: invoice.companyEmail || formData.companyEmail,
-      logo: invoice.companyLogo || formData.companyLogo || undefined
-    };
+      // Get client information
+      const client = clients.find(c => c.id === invoice.clientId);
+      
+      // Ensure we have valid client information for PDF
+      const clientForPDF = client || {
+        id: 'unknown',
+        name: 'No Client Selected',
+        email: '',
+        phone: '',
+        address: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: 'active' as const
+      };
+      
+      // Create company information from invoice data (prioritize saved data over form defaults)
+      const company = {
+        name: invoice.companyName || formData.companyName,
+        address: invoice.companyAddress || formData.companyAddress,
+        phone: invoice.companyPhone || formData.companyPhone,
+        email: invoice.companyEmail || formData.companyEmail,
+        logo: invoice.companyLogo || formData.companyLogo || undefined
+      };
 
-    // Generate PDF using enhanced generator
-    const success = generateInvoicePDF(invoice, clientForPDF, company);
+      // Generate PDF using enhanced generator
+      const success = generateInvoicePDF(invoice, clientForPDF, company);
 
-    if (success) {
-      console.log(`Invoice ${invoice.invoiceNumber} PDF generated successfully`);
-    } else {
-      console.error('Failed to generate PDF');
-      alert('Error generating PDF. Please try again.');
-    }
+      if (success) {
+        console.log(`Invoice ${invoice.invoiceNumber} PDF generated successfully`);
+      } else {
+        console.error('Failed to generate PDF');
+        alert('Error generating PDF. Please try again.');
+      }
+    }, 'exportPDF');
   };
 
   const selectedClient = clients.find(c => c.id === formData.clientId);
@@ -479,133 +512,13 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
       </div>
 
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Items</h3>
-          <button
-            onClick={addItem}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Item</span>
-            <span className="sm:hidden">Add</span>
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {formData.items.map((item) => (
-            <div key={item.id} className="p-4 bg-gray-50 rounded-lg">
-              {/* Mobile Card View */}
-              <div className="sm:hidden space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Item description"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Qty</label>
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                      className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Rate</label>
-                    <input
-                      type="number"
-                      value={item.rate}
-                      onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
-                      className="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Total</label>
-                    <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 font-medium text-base">
-                      ${item.total.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="px-3 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Desktop Table View */}
-              <div className="hidden sm:grid sm:grid-cols-12 gap-2 sm:gap-4">
-                <div className="sm:col-span-6">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Item description"
-                  />
-                </div>
-                
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Qty</label>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Rate</label>
-                  <input
-                    type="number"
-                    value={item.rate}
-                    onChange={(e) => updateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                
-                <div className="sm:col-span-1">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Total</label>
-                  <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 font-medium text-base text-right">
-                    ${item.total.toFixed(2)}
-                  </div>
-                </div>
-                
-                <div className="sm:col-span-1 flex items-end">
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="w-full px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4 mx-auto" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DraggableInvoiceItems
+          items={formData.items}
+          onUpdateItems={(items) => setFormData(prev => ({ ...prev, items }))}
+          onAddItem={addItem}
+          onDeleteItem={removeItem}
+          onUpdateItem={updateItem}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">

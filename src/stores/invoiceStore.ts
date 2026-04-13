@@ -44,7 +44,7 @@ interface InvoiceStore {
 
 export const useInvoiceStore = create<InvoiceStore>((set, get) => {
   // Initialize with data from localStorage
-  const loadData = () => {
+  const loadData = async () => {
     const currentState = get();
     set({
       invoices: getAllInvoices(),
