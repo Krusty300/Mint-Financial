@@ -26,15 +26,6 @@ Invoice Management
 Client Management
 - **Client dashboard** with detailed insights
 - **Client reports** and analytics
-- **Client portal** for invoice access
-- **CRM integration** with client lifecycle management
-
-E-commerce Integration
-- **Product catalog** management
-- **Order processing** and tracking
-- **Shipping management** system
-- **Tax management** and configuration
-- **Return processing** workflow
 
 Real-Time Features
 - **WebSocket integration** for live updates
