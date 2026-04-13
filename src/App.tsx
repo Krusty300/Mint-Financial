@@ -12,64 +12,86 @@ import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { useInvoiceStore } from './stores/invoiceStore';
 import { useKeyboardShortcuts, COMMON_SHORTCUTS } from './services/keyboardShortcuts';
+import FeatureTour from './components/FeatureTour';
+import FeatureHighlights from './components/FeatureHighlights';
+import ProgressiveDisclosure from './components/ProgressiveDisclosure';
+import WelcomeDashboard from './components/WelcomeDashboard';
+import UserSetup from './components/UserSetup';
 import type { Client } from './types';
 import { FileText, Users, Home, Database, BarChart3, ShoppingCart, Package, Settings, TrendingUp, Star, CheckCircle, Truck, AlertCircle, MessageSquare, Phone, Calendar, UserCheck, Activity, CreditCard, RotateCcw, Menu, X, Search } from 'lucide-react';
 import logoIcon from './assets/logo-icon.png';
 
-type Tab = 'analytics-dashboard' | 'dashboard' | 'invoices' | 'clients' | 'data' | 'search';
+type Tab = 'welcome' | 'analytics-dashboard' | 'dashboard' | 'invoices' | 'clients' | 'data' | 'search';
 
 export const App: React.FC = () => {
   const { currentInvoice, setCurrentInvoice, loadData, clients, exportData } = useInvoiceStore();
-  const [activeTab, setActiveTab] = useState<Tab>('analytics-dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>('welcome');
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { registerShortcut } = useKeyboardShortcuts();
 
+  // Feature Discovery State
+  const [showFeatureTour, setShowFeatureTour] = useState(false);
+  const [tourCompleted, setTourCompleted] = useState(false);
+
   // Load data on component mount
   useEffect(() => {
     loadData();
-    
-    // Handle URL-based routing for dropdown menu items
-    const currentPath = window.location.pathname;
-    const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
-    
-    // Handle create invoice action
-    if (action === 'new') {
-      if (currentPath === '/invoices') {
-        setIsCreatingInvoice(true);
-        setActiveTab('invoices');
-        window.history.replaceState({}, '', '/invoices');
-        return;
-      } else if (currentPath === '/clients') {
-        setIsCreatingClient(true);
-        setActiveTab('clients');
-        window.history.replaceState({}, '', '/clients');
-        return;
+  }, [loadData]);
+
+  // Handle URL-based routing and browser navigation
+  useEffect(() => {
+    const handleURLRouting = () => {
+      const currentPath = window.location.pathname;
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      
+      console.log('URL Routing:', { currentPath, action });
+      
+      // Reset states when setting active tabs
+      setIsCreatingInvoice(false);
+      setIsCreatingClient(false);
+      
+      // Handle create invoice action
+      if (action === 'new') {
+        if (currentPath === '/invoices') {
+          console.log('App: Creating invoice - setting states');
+          setIsCreatingInvoice(true);
+          setActiveTab('invoices');
+          window.history.replaceState({}, '', '/invoices');
+          console.log('App: Invoice creation states set');
+          return;
+        }
+        if (currentPath === '/clients') {
+          console.log('App: Creating client - setting states');
+          setIsCreatingClient(true);
+          setActiveTab('clients');
+          window.history.replaceState({}, '', '/clients');
+          console.log('App: Client creation states set');
+          return;
+        }
       }
-    }
-    
-    // Reset states when setting active tabs
-    setIsCreatingInvoice(false);
-    setIsCreatingClient(false);
-    
-    // Set active tab based on current URL
-    if (currentPath === '/' || currentPath === '/analytics-dashboard') {
-      setActiveTab('analytics-dashboard');
-    } else if (currentPath === '/dashboard') {
-      setActiveTab('dashboard');
-    } else if (currentPath === '/invoices') {
-      setActiveTab('invoices');
-    } else if (currentPath === '/clients') {
-      setActiveTab('clients');
-    } else if (currentPath === '/search') {
-      setActiveTab('search');
-    } else if (currentPath === '/data') {
-      setActiveTab('data');
-    }
-    
-    // Listen for browser navigation (back/forward buttons)
+      
+      // Set active tab based on current URL
+      if (currentPath === '/welcome') {
+        setActiveTab('welcome');
+      } else if (currentPath === '/' || currentPath === '/analytics-dashboard') {
+        setActiveTab('analytics-dashboard');
+      } else if (currentPath === '/dashboard') {
+        setActiveTab('dashboard');
+      } else if (currentPath === '/invoices') {
+        setActiveTab('invoices');
+      } else if (currentPath === '/clients') {
+        setActiveTab('clients');
+      } else if (currentPath === '/search') {
+        setActiveTab('search');
+      } else if (currentPath === '/data') {
+        setActiveTab('data');
+      }
+    };
+
+    // Handle browser navigation (back/forward buttons)
     const handlePopState = () => {
       const path = window.location.pathname;
       const urlParams = new URLSearchParams(window.location.search);
@@ -79,21 +101,16 @@ export const App: React.FC = () => {
       if (action === 'new') {
         if (path === '/invoices') {
           setIsCreatingInvoice(true);
-          setActiveTab('invoices');
-          window.history.replaceState({}, '', '/invoices');
-          return;
         } else if (path === '/clients') {
           setIsCreatingClient(true);
-          setActiveTab('clients');
-          window.history.replaceState({}, '', '/clients');
-          return;
         }
       }
       
-      // Reset states when navigating via browser
+      // Reset states when setting active tabs
       setIsCreatingInvoice(false);
       setIsCreatingClient(false);
       
+      // Set active tab based on current URL
       if (path === '/' || path === '/analytics-dashboard') {
         setActiveTab('analytics-dashboard');
       } else if (path === '/dashboard') {
@@ -108,13 +125,14 @@ export const App: React.FC = () => {
         setActiveTab('data');
       }
     };
-    
+
+    handleURLRouting();
     window.addEventListener('popstate', handlePopState);
-    
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [loadData]);
+  }, []);
 
   // Register keyboard shortcuts
   useEffect(() => {
@@ -143,6 +161,13 @@ export const App: React.FC = () => {
       action: () => {
         setActiveTab('search');
         window.history.pushState({}, '', '/search');
+      }
+    });
+
+    registerShortcut('feature-tour', {
+      ...COMMON_SHORTCUTS.HELP,
+      action: () => {
+        setShowFeatureTour(true);
       }
     });
 
@@ -208,9 +233,16 @@ export const App: React.FC = () => {
       description: 'Go to Data',
       action: () => handleTabClick('data')
     });
+
+    registerShortcut('tab-0', {
+      key: '0',
+      description: 'Go to Welcome Dashboard',
+      action: () => handleTabClick('welcome')
+    });
   }, [registerShortcut, currentInvoice, loadData, exportData]);
 
   const tabs = [
+    { id: 'welcome' as Tab, label: 'Welcome', icon: Star },
     { id: 'search' as Tab, label: 'Search', icon: Search },
     { id: 'analytics-dashboard' as Tab, label: 'Analytics Dashboard', icon: Home },
     { id: 'dashboard' as Tab, label: 'Reports Dashboard', icon: BarChart3 },
@@ -228,14 +260,17 @@ export const App: React.FC = () => {
     // Update browser URL to match tab
     const path = tabId === 'analytics-dashboard' ? '/' : 
                   tabId === 'dashboard' ? '/dashboard' : 
+                  tabId === 'welcome' ? '/welcome' :
                   `/${tabId}`;
     window.history.pushState({}, '', path);
   };
 
   const renderContent = () => {
     if (currentInvoice || isCreatingInvoice) {
+      console.log('App: Rendering InvoiceForm', { currentInvoice, isCreatingInvoice });
       return <InvoiceForm 
         onClose={() => {
+          console.log('App: InvoiceForm closed');
           setCurrentInvoice(null);
           setIsCreatingInvoice(false);
         }}
@@ -246,6 +281,9 @@ export const App: React.FC = () => {
     const currentPath = window.location.pathname;
     
     // Handle main navigation paths first to prevent flash
+    if (currentPath === '/welcome') {
+      return <WelcomeDashboard />;
+    }
     if (currentPath === '/analytics-dashboard' || currentPath === '/') {
       return <AnalyticsDashboard />;
     }
@@ -253,9 +291,13 @@ export const App: React.FC = () => {
       return <Dashboard />;
     }
     if (currentPath === '/clients') {
+      console.log('App: Rendering ClientManager', { isCreatingClient });
       return <ClientManager 
         isAddingClient={isCreatingClient} 
-        onClientFormClose={() => setIsCreatingClient(false)}
+        onClientFormClose={() => {
+          console.log('App: ClientManager form closed');
+          setIsCreatingClient(false);
+        }}
       />;
     }
     if (currentPath === '/invoices') {
@@ -3696,6 +3738,8 @@ export const App: React.FC = () => {
 
     // Default to dashboard for any other paths
     switch (activeTab) {
+      case 'welcome':
+        return <WelcomeDashboard />;
       case 'search':
         return <AdvancedSearch />;
       default:
@@ -3808,11 +3852,34 @@ export const App: React.FC = () => {
       </nav>
 
       <main className="py-4 sm:py-8">
-        {renderContent()}
+        <ProgressiveDisclosure>
+          {renderContent()}
+        </ProgressiveDisclosure>
       </main>
       
       <KeyboardShortcutsHelp />
       <GlobalLoadingIndicator />
+      
+      {/* Feature Discovery Components */}
+      <FeatureTour
+        isOpen={showFeatureTour}
+        onClose={() => setShowFeatureTour(false)}
+        onComplete={() => setTourCompleted(true)}
+        autoStart={!tourCompleted}
+      />
+      
+      <FeatureHighlights autoHideOnCompletion={true} />
+      {/* <ContextualTooltips autoHideOnCompletion={true} /> */}
+      
+      {/* User Setup Modal */}
+      <UserSetup 
+        onComplete={(name) => {
+          // Store user name in localStorage for WelcomeDashboard
+          localStorage.setItem('user-name', name);
+          // Force re-render to update welcome message
+          setActiveTab(prev => prev);
+        }} 
+      />
     </div>
     </LoadingProvider>
   );
